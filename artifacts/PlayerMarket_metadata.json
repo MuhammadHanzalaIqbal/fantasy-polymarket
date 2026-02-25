@@ -14,6 +14,11 @@
 					},
 					{
 						"internalType": "address",
+						"name": "_shareManager",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
 						"name": "_treasury",
 						"type": "address"
 					},
@@ -523,6 +528,19 @@
 				"type": "function"
 			},
 			{
+				"inputs": [],
+				"name": "shareManager",
+				"outputs": [
+					{
+						"internalType": "contract IPlayerShareManager",
+						"name": "",
+						"type": "address"
+					}
+				],
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"inputs": [
 					{
 						"internalType": "bytes4",
@@ -747,11 +765,11 @@
 			]
 		},
 		"contracts/PlayerMarket.sol": {
-			"keccak256": "0x8e56bc8333d868b1ffd23da2ce116f9a5cfe325cec3d5f358caac3e6a0845a7f",
+			"keccak256": "0x033300e01315077e2aa1979d06daa2f517c8a72729d3d23b4af80504d375c756",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://ffcf68a3d983b6183b173f1dd535d64a457c8b4759fcb45f43fe6005039b9cbc",
-				"dweb:/ipfs/QmSrdGR6sCoojVtd2Cmpv1Lz54CTt8Wp1Dd9fFyCFPZwyj"
+				"bzz-raw://43d9c93d7be716fd11952d0f4a92317eb9050b9bc1745b4472642093b8b9bdb7",
+				"dweb:/ipfs/Qmas9At9cwzvsPiwdcPkCjpVY983reYppMsSEYfykCHjqG"
 			]
 		}
 	},

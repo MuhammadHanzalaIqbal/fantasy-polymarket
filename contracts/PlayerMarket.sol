@@ -10,10 +10,18 @@ interface IFantasyToken is IERC20 {
     function mint(address to, uint256 amount) external;
 }
 
+interface IPlayerShareManager {
+    function mintShares(uint256 playerId, address to, uint256 amount)
+ external;
+    function burnShares(uint256 playerId, address from, uint256 amount)
+ external;
+ }
+
 contract PlayerMarket is ReentrancyGuard, AccessControl {
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     IFantasyToken public immutable ftk;
+    IPlayerShareManager public shareManager;
     address public treasury;
 
     uint256 public tradingFeeBps = 200;
@@ -35,9 +43,10 @@ contract PlayerMarket is ReentrancyGuard, AccessControl {
     event TreasuryUpdated(address newTreasury);
     event TradingFeeUpdated(uint256 newFeeBps);
 
-    constructor(address _ftk, address _treasury, address admin) {
+    constructor(address _ftk, address _shareManager, address _treasury, address admin) {
         require(_ftk != address(0) && _treasury != address(0), "Invalid addresses");
         ftk = IFantasyToken(_ftk);
+        shareManager = IPlayerShareManager(_shareManager);
         treasury = _treasury;
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(ADMIN_ROLE, admin);
@@ -96,6 +105,7 @@ contract PlayerMarket is ReentrancyGuard, AccessControl {
 
         // Update user balance
         userShares[playerId][msg.sender] += sharesToMint;
+        shareManager.mintShares(playerId, msg.sender, sharesToMint);
 
         emit BoughtShares(playerId, msg.sender, ftkAmount, sharesToMint, fee);
     }
@@ -117,6 +127,8 @@ contract PlayerMarket is ReentrancyGuard, AccessControl {
         pool.ftkLiquidity -= ftkReturn;
 
         userShares[playerId][msg.sender] -= shares;
+        shareManager.burnShares(playerId, msg.sender, shares);
+
         ftk.transfer(msg.sender, netFTK);
 
         if (fee > 0) {
