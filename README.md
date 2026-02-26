@@ -189,6 +189,16 @@ Reject data that is:
 * too old
 * too far in the future
 
+OracleAdapter does not directly connect to the backend. Instead, the backend acts as a trusted data producer that signs data off-chain and submits it on-chain via a relayer.
+Think of it as a cryptographic handshake rather than a network connection.
+Below is the exact production flow.
+Model: There are four actors:
+Sports data providers → raw real-world data
+Oracle backend service → computes and signs scores
+Relayer → sends transactions to Sepolia
+OracleAdapter (on-chain) → verifies and stores scores
+The smart contract never “calls” the backend - it must prove authenticity via signatures.
+
 
 8 Withdrawal Router
 Purpose: Completes the economic loop by letting users exit back to real assets.
