@@ -13,7 +13,11 @@ Shares: https://sepolia.etherscan.io/address/0xcbfc9c21658d214e61a17afc23928aef1
 faucet: https://console.optimism.io/faucet
 
 edit: WithdrawalRouter → burn() must be on via FTC
+
+
 WIthdrawalRouter for withdrawal must be on via treasury
+
+Other consents must be maintained during re-deployment (which ones? - list needed)
 
 1. Fantasy token:
 FTK is the internal utility token. Users spend it to build teams, trade player shares, and enter contests.
