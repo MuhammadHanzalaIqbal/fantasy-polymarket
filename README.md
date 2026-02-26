@@ -89,3 +89,328 @@ Req. to:
 * Enable trading
 * Plug into AMMs
 * Compose teams on-chain
+6 Contest Manager
+Purpose: This is the gameplay engine. At a high level it:
+* defines contests
+* accepts teams
+* escrows FTK entry fees
+* ranks participants after results arrive
+* pays winners
+* takes protocol rake
+It sits above PlayerMarket and ShareTokens.
+
+Lifecycle of a Contest
+Phase 1 — Contest creation (admin-driven)
+The system defines:
+* entry fee (in FTK)
+* max participants
+* roster requirements
+* start time / lock time
+* prize structure
+* rake percentage
+
+Phase 2 — Team entry (user-driven)
+When a user enters:
+1. Team structure is validated
+    * correct number of players
+    * position rules satisfied
+    * user actually owns required PlayerShareTokens (or has staked them)
+2. FTK entry fee is transferred into the ContestManager (escrow)
+3. Entry is recorded immutably
+4. Team NFT is minted
+    * represents the lineup
+    * enables secondary markets
+    * simplifies UX ContestManager becomes the temporary bank for entry fees.
+
+Phase 3 — Contest lock
+Once the contest starts:
+* no more entries
+* teams become immutable
+* withdrawals disabled
+This prevents late-information abuse.
+
+Phase 4 — Resolution (oracle-triggered)
+After real-world matches finish:
+ContestManager must:
+1. read player scores from OracleAdapter
+2. compute each team’s total score
+3. rank participants
+4. compute payouts
+5. distribute FTK
+6. send rake to Treasury
+This is the most gas-sensitive and attack-sensitive part of the system.
+
+Implementation of prize distribution model is also here: either fixed payloads or percentile (ties exist, so as large scale contests - adapt)
+
+
+
+7 Oracle Adapter
+Purpose: This is the bridge between real-world sports data and the on-chain game. 
+
+Architecture: Signed Data Oracle
+Off-chain responsibilities
+The oracle service:
+* ingests match data
+* computes fantasy scores
+* aggregates per player
+* signs the result payload
+Important: the scoring logic must be deterministic and versioned.
+
+On-chain responsibilities
+OracleAdapter must:
+* verify signature
+* verify authorized signer
+* verify timestamp freshness
+* prevent replay
+* update player scores
+It should not compute heavy logic on-chain.
+
+Required Security Protections
+Signer whitelist
+Only approved oracle keys can submit data.
+If compromised → attacker can rewrite history.
+Mitigation:
+* multisig-controlled signer set
+* emergency rotation
+
+Replay protection
+Each matchweek submission must be unique.
+Otherwise attacker could:
+* resubmit old favorable data
+* manipulate contest resolution
+
+Timestamp bounds
+Reject data that is:
+* too old
+* too far in the future
+
+
+8 Withdrawal Router
+Purpose: Completes the economic loop by letting users exit back to real assets.
+Current flow ends at FTK. This step enables:
+
+
+USDC → FTK → gameplay → FTK → USDC
+
+
+Responsibilities
+WithdrawalRouter must:
+* accept FTK from user
+* burn FTK
+* release backing assets
+* apply withdrawal fee
+* enforce safety checks
+
+Where funds come from
+The Treasury (or liquidity pool) must hold enough reserves.
+Req: Total redeemable FTK ≤ reserve backing
+
+Mandatory Safety Controls
+Reserve sufficiency check
+Before releasing funds need to verify enough USDC/ETH exists
+
+Rate limiting
+Prevents bank-run style drains.
+Common patterns:
+* per-block cap
+* per-user cooldown
+* global daily limit
+
+
+
+
+BACKEND APPROXIMATELY: (GPT TEXT I DID NOT EDIT IT, IT'S HERE FOR GENERAL COMPREHENSION ONLY)
+High-Level Role of the Backend
+In your system:
+* Blockchain = money, ownership, final state
+* Backend = data aggregation, orchestration, caching, and UX acceleration
+* Indexer = historical and real-time query layer
+* Oracle service = trusted sports data pipeline
+Your backend is primarily:
+* stateless API + workers
+* oracle computation engine
+* contest orchestration helper
+* risk and monitoring layer
+It must never be able to steal funds or rewrite balances.
+
+Core Backend Components
+1) API Gateway (User-Facing Backend)
+This is your standard web backend.
+Responsibilities
+* user session helpers (optional)
+* contest browsing
+* leaderboard queries
+* portfolio aggregation
+* player stats display
+* team validation pre-checks
+* rate limiting / anti-abuse
+Important rule
+It does not custody funds and does not modify on-chain state directly.
+All writes that matter must still go through smart contracts.
+
+2) Indexer Service (The Graph or custom)
+This is technically separate but tightly coupled to backend.
+Why you need it
+Blockchain RPC is too slow and expensive for:
+* leaderboards
+* contest history
+* player charts
+* user portfolios
+What it consumes
+Events from:
+* DepositRouter
+* PlayerMarket
+* ContestManager
+* OracleAdapter
+* WithdrawalRouter
+What it produces
+Queryable entities like:
+* User
+* Player
+* PlayerPool
+* Trade
+* Contest
+* TeamEntry
+* ScoreUpdate
+Your backend API will mostly read from this.
+
+3) Oracle Engine (Most Critical Backend Service)
+This is the brain off-chain.
+Remember: smart contracts do NOT compute fantasy scores.
+
+Oracle Pipeline
+Step A — Data ingestion
+Backend pulls raw sports data from providers like:
+* Opta
+* Sportradar
+* StatsBomb
+* official league feeds
+It must handle:
+* retries
+* deduplication
+* late corrections
+
+Step B — Score computation
+Your backend computes fantasy points using deterministic rules.
+Example inputs:
+* goals
+* assists
+* minutes played
+* cards
+* clean sheets
+CRITICAL: this logic must be:
+* versioned
+* deterministic
+* reproducible
+Because disputes will happen.
+
+Step C — Payload construction
+For each matchweek:
+Backend builds a payload:
+* playerId → score
+* matchweek id
+* timestamp
+* nonce
+
+Step D — Cryptographic signing
+Your oracle service signs the payload with a private key.
+This key must be stored in:
+* HSM or secure enclave
+* never in plain environment variables in production
+
+Step E — Submission to chain
+A backend relayer sends the signed payload to OracleAdapter.
+Important:
+Relayer ≠ oracle signer.
+Separate keys reduce risk.
+
+4) Contest Resolution Worker
+Even though resolution happens on-chain, you will want backend workers that:
+* monitor when contests are ready
+* trigger resolveContest transactions
+* batch operations when needed
+* retry failed executions
+Without this, contests may sit unresolved.
+
+5) Risk & Monitoring System (Often overlooked)
+Production protocols must monitor:
+* abnormal withdrawals
+* oracle delays
+* liquidity imbalance
+* trading spikes
+* failed resolutions
+Typical stack
+* Prometheus / Grafana
+* alerting (PagerDuty, etc.)
+* custom anomaly detection
+This becomes critical once real money flows.
+
+6) Caching Layer
+You will need aggressive caching for:
+* player lists
+* leaderboards
+* contest lobbies
+* price charts
+Typical tools:
+* Redis
+* edge caching (Cloudflare)
+Without this, your API costs will explode.
+
+7) Optional but Powerful Backend Features
+Not required for MVP but very valuable.
+
+Pre-trade simulation service
+Backend simulates:
+* buyShares output
+* sellShares output
+* slippage preview
+This avoids users needing expensive on-chain calls.
+
+Team validation helper
+Before user submits on-chain:
+Backend checks:
+* roster validity
+* salary caps (if you add them)
+* ownership requirements
+This reduces failed transactions.
+
+Social / gamification layer
+Off-chain but valuable:
+* user profiles
+* badges
+* achievements
+* referral tracking
+
+What Your Backend Must NEVER Do
+To stay trust-minimized:
+Backend must NOT:
+* hold user funds
+* compute final contest winners (only helper)
+* control mint/burn permissions
+* be required for withdrawals
+* gate normal protocol usage
+If your backend goes offline, the protocol should still be usable (even if UX degrades).
+
+Suggested Production Architecture
+A realistic stack looks like:
+Frontend (React/Wagmi) ↓ API Gateway (Node/TS or Go) ↓ Indexer (The Graph / custom) ↓ Database (Postgres) ↓ Cache (Redis) ↓
+Oracle Engine (separate service) Relayer Service Contest Worker Monitoring stack
+
+
+    ↓
+
+Blockchain (your contracts)
+
+MVP vs Production Reality
+For MVP you can start with:
+* simple Node backend
+* one oracle signer
+* one relayer
+* The Graph
+* Redis cache
+For production you will eventually need:
+* signer rotation
+* multi-oracle quorum
+* horizontal workers
+* advanced monitoring
+* failover RPCs
