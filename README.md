@@ -1,4 +1,5 @@
 Existing deployed contracts:
+
 FTK: https://sepolia.etherscan.io/address/0x82021ccfed084fd8578cb38d8d4323345c363079#writeContract
 
 Treasury: https://sepolia.etherscan.io/address/0xb78e5bdcdf4628d66ce92f731b8a6bc4eac4b63a#readContract
@@ -8,6 +9,10 @@ Router: https://sepolia.etherscan.io/address/0xf2134d1c5b1f0be5f724a7dc8b7fc360f
 Market: https://sepolia.etherscan.io/address/0x290dd7f51a0100941d1ec14c40d625821f2bb723#writeContract
 
 Shares: https://sepolia.etherscan.io/address/0xcbfc9c21658d214e61a17afc23928aef1453bda8#readContract
+
+faucet: https://console.optimism.io/faucet
+
+
 
 1. Fantasy token:
 FTK is the internal utility token. Users spend it to build teams, trade player shares, and enter contests.
