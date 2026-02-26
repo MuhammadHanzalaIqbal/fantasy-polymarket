@@ -37,7 +37,7 @@
 		},
 		"gasEstimates": null,
 		"methodIdentifiers": {
-			"playerToken(uint256)": "7119f4fb"
+			"playerScore(uint256)": "99b7e835"
 		}
 	},
 	"abi": [
@@ -49,12 +49,12 @@
 					"type": "uint256"
 				}
 			],
-			"name": "playerToken",
+			"name": "playerScore",
 			"outputs": [
 				{
-					"internalType": "address",
+					"internalType": "uint256",
 					"name": "",
-					"type": "address"
+					"type": "uint256"
 				}
 			],
 			"stateMutability": "view",

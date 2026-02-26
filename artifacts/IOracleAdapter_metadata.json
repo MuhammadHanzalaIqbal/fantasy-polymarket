@@ -13,12 +13,12 @@
 						"type": "uint256"
 					}
 				],
-				"name": "playerToken",
+				"name": "playerScore",
 				"outputs": [
 					{
-						"internalType": "address",
+						"internalType": "uint256",
 						"name": "",
-						"type": "address"
+						"type": "uint256"
 					}
 				],
 				"stateMutability": "view",
@@ -38,7 +38,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/ContestManager.sol": "IPlayerShareManager"
+			"contracts/ContestManager.sol": "IOracleAdapter"
 		},
 		"evmVersion": "osaka",
 		"libraries": {},

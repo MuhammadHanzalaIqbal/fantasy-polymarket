@@ -1,57 +1,11 @@
 {
 	"compiler": {
-		"version": "0.8.27+commit.40a35a09"
+		"version": "0.8.34+commit.80d5c536"
 	},
 	"language": "Solidity",
 	"output": {
-		"abi": [
-			{
-				"inputs": [],
-				"name": "ECDSAInvalidSignature",
-				"type": "error"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "uint256",
-						"name": "length",
-						"type": "uint256"
-					}
-				],
-				"name": "ECDSAInvalidSignatureLength",
-				"type": "error"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "bytes32",
-						"name": "s",
-						"type": "bytes32"
-					}
-				],
-				"name": "ECDSAInvalidSignatureS",
-				"type": "error"
-			}
-		],
+		"abi": [],
 		"devdoc": {
-			"details": "Elliptic Curve Digital Signature Algorithm (ECDSA) operations. These functions can be used to verify that a message was signed by the holder of the private keys of a given address.",
-			"errors": {
-				"ECDSAInvalidSignature()": [
-					{
-						"details": "The signature derives the `address(0)`."
-					}
-				],
-				"ECDSAInvalidSignatureLength(uint256)": [
-					{
-						"details": "The signature has an invalid length."
-					}
-				],
-				"ECDSAInvalidSignatureS(bytes32)": [
-					{
-						"details": "The signature has an S value that is in the upper half order."
-					}
-				]
-			},
 			"kind": "dev",
 			"methods": {},
 			"version": 1
@@ -64,9 +18,9 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/MyToken.sol": "ECDSA"
+			"contracts/Oracle.sol": "ECDSA"
 		},
-		"evmVersion": "cancun",
+		"evmVersion": "osaka",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -78,11 +32,12 @@
 		"remappings": []
 	},
 	"sources": {
-		"contracts/MyToken.sol": {
-			"keccak256": "0x95ff9ff30bb940d3dd0a5d2db24468257f98b8fef0923870262b49ca73679fb9",
+		"contracts/Oracle.sol": {
+			"keccak256": "0x2324254b167e06285537a0b9cd2d4caa4bbdd2bb1eabe443c8ca68257c6b166c",
+			"license": "MIT",
 			"urls": [
-				"bzz-raw://11cc453d5c4d7cd932c3e3d0f1d0dd57124066b9d675d3ebcbafa053b2dd71fb",
-				"dweb:/ipfs/QmUnRX9fKGTmpqBXzX2ABY4rz7i4hRDq2NYDAmqW9Gho9n"
+				"bzz-raw://458d3410ad86aae559a5a16ca04e32be70ddfc493e0829f439ce1502d954327e",
+				"dweb:/ipfs/QmfLp43KuqmVDYcgYdpFdjCisfjruXMdtYpNgfKUd86cru"
 			]
 		}
 	},

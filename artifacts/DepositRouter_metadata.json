@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.27+commit.40a35a09"
+		"version": "0.8.34+commit.80d5c536"
 	},
 	"language": "Solidity",
 	"output": {
@@ -557,7 +557,7 @@
 		"compilationTarget": {
 			"contracts/DepositRouter.sol": "DepositRouter"
 		},
-		"evmVersion": "cancun",
+		"evmVersion": "osaka",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"

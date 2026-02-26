@@ -8,20 +8,24 @@
 			{
 				"inputs": [
 					{
+						"internalType": "address",
+						"name": "token",
+						"type": "address"
+					},
+					{
+						"internalType": "address",
+						"name": "to",
+						"type": "address"
+					},
+					{
 						"internalType": "uint256",
-						"name": "playerId",
+						"name": "amount",
 						"type": "uint256"
 					}
 				],
-				"name": "playerToken",
-				"outputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
-					}
-				],
-				"stateMutability": "view",
+				"name": "withdrawAsset",
+				"outputs": [],
+				"stateMutability": "nonpayable",
 				"type": "function"
 			}
 		],
@@ -38,7 +42,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"contracts/ContestManager.sol": "IPlayerShareManager"
+			"contracts/WithdrawRouter.sol": "ITreasury"
 		},
 		"evmVersion": "osaka",
 		"libraries": {},
@@ -52,12 +56,12 @@
 		"remappings": []
 	},
 	"sources": {
-		"contracts/ContestManager.sol": {
-			"keccak256": "0x8b06d790ed9a31eee792d925bad1387bffd2621b454ec98d70a1e1e4e4f96e62",
+		"contracts/WithdrawRouter.sol": {
+			"keccak256": "0x9a63ada475f2ae7f70cfe8df8c20b3497551c14890981a50c9c35ac88e058725",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://62324332a7091a39cad9fdd550ae92fc15768181f6d3ced759acc3bdad9eb3b2",
-				"dweb:/ipfs/QmQCV8xezt2jMyTp8uhJnr6E7vq1bFn5kVcmDz7yC2Vxnf"
+				"bzz-raw://0c9f30eb03ae95b5406c7eeca26f8087e2b1b8b46343caacf2428cff99ee3cdb",
+				"dweb:/ipfs/QmPtGtHHzqiUMR3Ge2m8aMTvd88pokmtuN5xqq4xJ2uneB"
 			]
 		}
 	},

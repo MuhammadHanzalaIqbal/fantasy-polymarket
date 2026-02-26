@@ -37,27 +37,31 @@
 		},
 		"gasEstimates": null,
 		"methodIdentifiers": {
-			"playerToken(uint256)": "7119f4fb"
+			"withdrawAsset(address,address,uint256)": "092ae4dc"
 		}
 	},
 	"abi": [
 		{
 			"inputs": [
 				{
+					"internalType": "address",
+					"name": "token",
+					"type": "address"
+				},
+				{
+					"internalType": "address",
+					"name": "to",
+					"type": "address"
+				},
+				{
 					"internalType": "uint256",
-					"name": "playerId",
+					"name": "amount",
 					"type": "uint256"
 				}
 			],
-			"name": "playerToken",
-			"outputs": [
-				{
-					"internalType": "address",
-					"name": "",
-					"type": "address"
-				}
-			],
-			"stateMutability": "view",
+			"name": "withdrawAsset",
+			"outputs": [],
+			"stateMutability": "nonpayable",
 			"type": "function"
 		}
 	]
