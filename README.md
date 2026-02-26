@@ -15,12 +15,14 @@ faucet: https://console.optimism.io/faucet
 edit: WithdrawalRouter → burn() must be on via FTC
 
 
-edit2: test files must be written before the live-deployment
+
 
 
 WIthdrawalRouter for withdrawal must be on via treasury
 
 Other consents must be maintained during re-deployment (which ones? - list needed)
+
+edit2: test files must be written before the live-deployment
 
 1. Fantasy token:
 FTK is the internal utility token. Users spend it to build teams, trade player shares, and enter contests.
