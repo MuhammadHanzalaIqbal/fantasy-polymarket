@@ -24,6 +24,8 @@ Other consents must be maintained during re-deployment (which ones? - list neede
 
 edit2: test files must be written before the live-deployment
 
+edit3: treasury layer will be removed (no fees!)
+
 1. Fantasy token:
 FTK is the internal utility token. Users spend it to build teams, trade player shares, and enter contests.
 * Key properties:
