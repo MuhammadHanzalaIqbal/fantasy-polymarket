@@ -12,7 +12,7 @@ Shares: https://sepolia.etherscan.io/address/0xcbfc9c21658d214e61a17afc23928aef1
 
 faucet: https://console.optimism.io/faucet
 
-edit: WithdrawalRouter → burn() must be on via FTC
+edit: WithdrawalRouter → burn() must be on via FTK
 
 
 
