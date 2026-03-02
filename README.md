@@ -18,6 +18,19 @@ PlayerShares: https://sepolia.etherscan.io/address/0x8f3633053a47b91db07e15ac205
 
 Contract: 0x2AB09664DDC78305ce09c57EE0768A2194F0a15B
 
+OracleAdapter:
+https://sepolia.etherscan.io/address/0x62fe83664239397d0b6ea37bcbe1b775520c204c#writeContract
+
+Contract: 0x62Fe83664239397d0b6Ea37bcbE1b775520c204c
+
+ContestManager: https://sepolia.etherscan.io/address/0xd75b933fe234b46709f24a73afe01e39f5fb4567#writeContract
+
+Contract: 0x2AB09664DDC78305ce09c57EE0768A2194F0a15B
+
+WithdrawalRouter: https://sepolia.etherscan.io/address/0x5e4986bcd65a1d9668b65a989e0be0b43aac1e51#writeContract
+
+Contract: 0x5E4986bCD65A1d9668B65a989E0be0B43AAC1E51
+
 faucet: https://console.optimism.io/faucet
 
 edit: WithdrawalRouter → burn() must be on via FTK
