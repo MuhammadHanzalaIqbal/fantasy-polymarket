@@ -11,19 +11,13 @@ interface IFTK is IERC20 {
     function burn(address from, uint256 amount) external;
 }
 
-interface ITreasury {
-    function withdrawAsset(address token, address to, uint256 amount) external;
-}
-
 contract WithdrawalRouter {
 
     address public owner;
 
     IFTK public immutable ftk;
-    ITreasury public treasury;
-    IERC20 public immutable backingAsset; // eUSDC?
+    IERC20 public immutable backingAsset;
 
-    uint256 public withdrawalFeeBps = 50;
     uint256 public perUserCooldown = 5 minutes;
     uint256 public globalDailyLimit;
     uint256 public withdrawnToday;
@@ -31,15 +25,7 @@ contract WithdrawalRouter {
 
     mapping(address => uint256) public lastWithdrawTime;
 
-    event Withdrawn(
-        address indexed user,
-        uint256 ftkBurned,
-        uint256 assetReturned,
-        uint256 fee
-    );
-
-    event FeeUpdated(uint256 newFeeBps);
-    event TreasuryUpdated(address treasury);
+    event Withdrawn(address indexed user, uint256 ftkBurned, uint256 assetReturned);
     event LimitsUpdated(uint256 cooldown, uint256 dailyLimit);
     event OwnershipTransferred(address newOwner);
 
@@ -50,13 +36,12 @@ contract WithdrawalRouter {
 
     constructor(
         address _ftk,
-        address _treasury,
         address _backingAsset,
         uint256 _dailyLimit
     ) {
+        require(_ftk != address(0) && _backingAsset != address(0), "ZERO_ADDR");
         owner = msg.sender;
         ftk = IFTK(_ftk);
-        treasury = ITreasury(_treasury);
         backingAsset = IERC20(_backingAsset);
         globalDailyLimit = _dailyLimit;
         lastDay = block.timestamp / 1 days;
@@ -66,78 +51,44 @@ contract WithdrawalRouter {
         require(ftkAmount > 0, "ZERO_AMOUNT");
 
         _checkAndUpdateLimits(msg.sender, ftkAmount);
-
-        // pull FTK from user
-        require(
-            ftk.transferFrom(msg.sender, address(this), ftkAmount),
-            "FTK_TRANSFER_FAIL"
-        );
-
-        // burn FTK
+        require(ftk.transferFrom(msg.sender, address(this), ftkAmount), "FTK_TRANSFER_FAIL");
         ftk.burn(address(this), ftkAmount);
 
-        // compute fee
-        uint256 fee = (ftkAmount * withdrawalFeeBps) / 10_000;
-        uint256 netAssets = ftkAmount - fee;
+        uint256 netAssets = ftkAmount;
 
         require(netAssets >= minOut, "SLIPPAGE");
 
-        // reserve sufficiency check
-        uint256 treasuryBalance = backingAsset.balanceOf(address(treasury));
-        require(treasuryBalance >= netAssets, "INSUFFICIENT_RESERVES");
+        uint256 reserve = backingAsset.balanceOf(address(this));
+        require(reserve >= netAssets, "INSUFFICIENT_RESERVES");
 
-        // pull assets from treasury to user
-        treasury.withdrawAsset(address(backingAsset), msg.sender, netAssets);
+        backingAsset.transfer(msg.sender, netAssets);
 
-        emit Withdrawn(msg.sender, ftkAmount, netAssets, fee);
+        emit Withdrawn(msg.sender, ftkAmount, netAssets);
     }
 
     function _checkAndUpdateLimits(address user, uint256 amount) internal {
-        // per-user cooldown
-        require(
-            block.timestamp >= lastWithdrawTime[user] + perUserCooldown,
-            "USER_COOLDOWN"
-        );
+        require(block.timestamp >= lastWithdrawTime[user] + perUserCooldown, "USER_COOLDOWN");
         lastWithdrawTime[user] = block.timestamp;
-
-        // reset daily window if needed
         uint256 currentDay = block.timestamp / 1 days;
         if (currentDay > lastDay) {
             lastDay = currentDay;
             withdrawnToday = 0;
         }
 
-        // global daily limit
         if (globalDailyLimit > 0) {
-            require(
-                withdrawnToday + amount <= globalDailyLimit,
-                "DAILY_LIMIT"
-            );
+            require(withdrawnToday + amount <= globalDailyLimit, "DAILY_LIMIT");
             withdrawnToday += amount;
         }
     }
 
-    function setFee(uint256 newFeeBps) external onlyOwner {
-        require(newFeeBps <= 500, "FEE_TOO_HIGH"); // max 5%
-        withdrawalFeeBps = newFeeBps;
-        emit FeeUpdated(newFeeBps);
-    }
-
-    function setTreasury(address newTreasury) external onlyOwner {
-        treasury = ITreasury(newTreasury);
-        emit TreasuryUpdated(newTreasury);
-    }
-
-    function setLimits(
-        uint256 cooldown,
-        uint256 dailyLimit
-    ) external onlyOwner {
+    function setLimits(uint256 cooldown, uint256 dailyLimit) external onlyOwner {
         perUserCooldown = cooldown;
         globalDailyLimit = dailyLimit;
         emit LimitsUpdated(cooldown, dailyLimit);
     }
 
     function transferOwnership(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "ZERO_ADDR");
         owner = newOwner;
         emit OwnershipTransferred(newOwner);
     }
