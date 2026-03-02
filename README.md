@@ -246,6 +246,24 @@ Common patterns:
 
 
 
+***
+json erc1155 template:
+{
+"name": "Fantasy Team #1",
+"description": "Entry NFT for Contest #12",
+"image": "https://api.yourgame.xyz/images/team-1.png",
+"external_url": "https://yourgame.xyz/team/1",
+"attributes": [
+{ "trait_type": "Contest ID", "value": 12 },
+{ "trait_type": "Owner", "value": "0xabc...123" },
+{ "trait_type": "Players", "value": "23,45,77,91" },
+{ "trait_type": "Final Score", "value": 187 }
+]
+}
+
+Backend should auto build metadata for teams
+Blockchain → indexer → database → API → wallet
+
 BACKEND APPROXIMATELY: (GPT TEXT I DID NOT EDIT IT, IT'S HERE FOR GENERAL COMPREHENSION ONLY)
 High-Level Role of the Backend
 In your system:
