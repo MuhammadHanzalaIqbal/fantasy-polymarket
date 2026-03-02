@@ -9,9 +9,14 @@ https://sepolia.etherscan.io/address/0xdf582d404867f12978e3e2e9d6e03ea4f5cf55da#
 
 Contract: 0xDF582D404867F12978E3e2E9D6E03Ea4F5Cf55Da
 
-Market: https://sepolia.etherscan.io/address/0x290dd7f51a0100941d1ec14c40d625821f2bb723#writeContract
+PlayerMarket: 
+https://sepolia.etherscan.io/address/0x9540eb6b9252e259398b4f9dcb90f56064e0b15c#writeContract
 
-Shares: https://sepolia.etherscan.io/address/0xcbfc9c21658d214e61a17afc23928aef1453bda8#readContract
+Contract: 0x2AB09664DDC78305ce09c57EE0768A2194F0a15B
+
+PlayerShares: https://sepolia.etherscan.io/address/0x8f3633053a47b91db07e15ac2057b62a905a82fd#writeContract
+
+Contract: 0x2AB09664DDC78305ce09c57EE0768A2194F0a15B
 
 faucet: https://console.optimism.io/faucet
 
