@@ -2,9 +2,12 @@ Existing deployed contracts:
 
 FTK: https://sepolia.etherscan.io/address/0x82021ccfed084fd8578cb38d8d4323345c363079#writeContract
 
-Treasury: https://sepolia.etherscan.io/address/0xb78e5bdcdf4628d66ce92f731b8a6bc4eac4b63a#readContract
+Contract: 0x82021CcfED084fD8578cb38d8D4323345C363079
 
-Router: https://sepolia.etherscan.io/address/0xf2134d1c5b1f0be5f724a7dc8b7fc360f3cad04e#writeContract
+DepositRouter:
+https://sepolia.etherscan.io/address/0xdf582d404867f12978e3e2e9d6e03ea4f5cf55da#writeContract
+
+Contract: 0xDF582D404867F12978E3e2E9D6E03Ea4F5Cf55Da
 
 Market: https://sepolia.etherscan.io/address/0x290dd7f51a0100941d1ec14c40d625821f2bb723#writeContract
 
