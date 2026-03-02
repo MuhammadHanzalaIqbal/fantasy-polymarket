@@ -1,0 +1,35 @@
+[project]
+name = "fantasy-polymarket"
+version = "0.1.0"
+description = "MVP backend for fantasy polymarket protocol"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "eth-account>=0.13.7",
+    "fastapi>=0.116.1",
+    "httpx>=0.28.1",
+    "pydantic-settings>=2.10.1",
+    "python-dotenv>=1.1.1",
+    "tenacity>=9.1.2",
+    "uvicorn[standard]>=0.35.0",
+    "web3>=7.13.0",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.18.2",
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.1.0",
+    "ruff>=0.12.11",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "SIM"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["backend/tests"]

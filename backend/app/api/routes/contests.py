@@ -1,0 +1,125 @@
+"""Contest read and operations routes."""
+
+from fastapi import APIRouter, Depends, HTTPException, status
+
+from backend.app.api.deps import get_blockchain_client, require_demo_admin
+from backend.app.blockchain.client import BlockchainClient
+from backend.app.config import get_settings
+from backend.app.models.schemas import (
+    ContestResponse,
+    LeaderboardEntryResponse,
+    TransactionResponse,
+)
+from backend.app.services.contest_ops import is_contest_resolvable
+
+router = APIRouter(prefix="/contests", tags=["contests"])
+
+
+@router.get("", response_model=list[ContestResponse])
+def list_contests(
+    blockchain_client: BlockchainClient = Depends(get_blockchain_client),
+) -> list[ContestResponse]:
+    """Returns contest metadata indexed by contract IDs."""
+
+    settings = get_settings()
+    if not settings.contest_manager_address:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="contest_manager_address is not configured",
+        )
+    contest_manager = blockchain_client.contract(
+        "ContestManager", settings.contest_manager_address
+    )
+    next_contest_id = int(contest_manager.functions.nextContestId().call())
+    contests: list[ContestResponse] = []
+    for contest_id in range(1, next_contest_id + 1):
+        contest = contest_manager.functions.contests(contest_id).call()
+        contests.append(
+            ContestResponse(
+                contest_id=contest_id,
+                entry_fee=int(contest[0]),
+                max_entries=int(contest[1]),
+                start_time=int(contest[2]),
+                lock_time=int(contest[3]),
+                rake_bps=int(contest[4]),
+                resolved=bool(contest[5]),
+                total_pot=int(contest[6]),
+            )
+        )
+    return contests
+
+
+@router.get("/{contest_id}/leaderboard", response_model=list[LeaderboardEntryResponse])
+def get_leaderboard(
+    contest_id: int,
+    blockchain_client: BlockchainClient = Depends(get_blockchain_client),
+) -> list[LeaderboardEntryResponse]:
+    """Returns leaderboard entries from on-chain contest storage."""
+
+    settings = get_settings()
+    if not settings.contest_manager_address:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="contest_manager_address is not configured",
+        )
+
+    contest_manager = blockchain_client.contract(
+        "ContestManager", settings.contest_manager_address
+    )
+    entries: list[LeaderboardEntryResponse] = []
+    index = 0
+    while True:
+        try:
+            entry = contest_manager.functions.contestEntries(contest_id, index).call()
+            entries.append(
+                LeaderboardEntryResponse(
+                    rank=index + 1,
+                    user=str(entry[0]),
+                    score=int(entry[2]),
+                )
+            )
+            index += 1
+        except Exception:
+            break
+
+    entries.sort(key=lambda row: row.score, reverse=True)
+    for rank, entry in enumerate(entries, start=1):
+        entry.rank = rank
+    return entries
+
+
+@router.post(
+    "/{contest_id}/resolve",
+    response_model=TransactionResponse,
+    dependencies=[Depends(require_demo_admin)],
+)
+def resolve_contest(
+    contest_id: int,
+    blockchain_client: BlockchainClient = Depends(get_blockchain_client),
+) -> TransactionResponse:
+    """Triggers on-chain contest resolution for demo operations."""
+
+    settings = get_settings()
+    if not settings.contest_manager_address:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="contest_manager_address is not configured",
+        )
+    contest_manager = blockchain_client.contract(
+        "ContestManager", settings.contest_manager_address
+    )
+    if not is_contest_resolvable(contest_manager, contest_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="contest is not resolvable in current state",
+        )
+
+    result = blockchain_client.send_transaction(
+        contract=contest_manager,
+        function_name="resolveContest",
+        args=(contest_id,),
+    )
+    return TransactionResponse(
+        tx_hash=result.tx_hash, block_number=result.block_number, status=result.status
+    )
+
