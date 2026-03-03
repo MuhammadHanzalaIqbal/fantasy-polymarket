@@ -1,6 +1,7 @@
 """FastAPI application entrypoint for MVP backend."""
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.api.routes.contests import router as contests_router
 from backend.app.api.routes.health import router as health_router
@@ -20,6 +21,19 @@ def create_app() -> FastAPI:
         version=settings.app_version,
         debug=settings.debug,
     )
+
+   
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=[
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+        ],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
     app.include_router(health_router)
     app.include_router(players_router)
     app.include_router(market_router)
@@ -30,4 +44,3 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-
