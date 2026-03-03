@@ -14,9 +14,11 @@ https://sepolia.etherscan.io/address/0x9540eb6b9252e259398b4f9dcb90f56064e0b15c#
 
 Contract: 0x2AB09664DDC78305ce09c57EE0768A2194F0a15B
 
-PlayerShares: https://sepolia.etherscan.io/address/0x8f3633053a47b91db07e15ac2057b62a905a82fd#writeContract
+PlayerSharesManager: https://sepolia.etherscan.io/address/0x63ea24cd1e2e47d9e57eddfab3045e3aa68ca2a5#writeContract
 
 Contract: 0x2AB09664DDC78305ce09c57EE0768A2194F0a15B
+
+
 
 OracleAdapter:
 https://sepolia.etherscan.io/address/0x62fe83664239397d0b6ea37bcbe1b775520c204c#writeContract
