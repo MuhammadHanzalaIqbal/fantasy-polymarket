@@ -31,7 +31,9 @@ WithdrawalRouter: https://sepolia.etherscan.io/address/0x5e4986bcd65a1d9668b65a9
 
 Contract: 0x5E4986bCD65A1d9668B65a989E0be0B43AAC1E51
 
-faucet: https://console.optimism.io/faucet
+faucet (0.01/day): https://console.optimism.io/faucet
+
+faucet2 (0.05/day): https://cloud.google.com/application/web3/faucet/ethereum/sepolia
 
 edit: WithdrawalRouter → burn() must be on via FTK
 
