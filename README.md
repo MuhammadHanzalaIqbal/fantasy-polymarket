@@ -1,4 +1,4 @@
-Existing deployed contracts:
+**Links:**
 
 FTK: https://sepolia.etherscan.io/address/0x82021ccfed084fd8578cb38d8d4323345c363079#writeContract
 
@@ -35,33 +35,22 @@ faucet (0.01/day): https://console.optimism.io/faucet
 
 faucet2 (0.05/day): https://cloud.google.com/application/web3/faucet/ethereum/sepolia
 
-edit: WithdrawalRouter → burn() must be on via FTK
+**Rules:**
+*WithdrawalRouter -> burn via FTK
+*Depositrouter -> mint via FTK
 
+**The blockchain layer:**
 
+(No fees)
 
-
-
-WIthdrawalRouter for withdrawal must be on via treasury
-
-Other consents must be maintained during re-deployment (which ones? - list needed)
-
-edit2: test files must be written before the live-deployment
-
-edit3: treasury layer will be removed (no fees!)
-
-1. Fantasy token:
+**1. Fantasy token:**
 FTK is the internal utility token. Users spend it to build teams, trade player shares, and enter contests.
 * Key properties:
-    * Mintable and burnable (controlled by smart contracts)
-    * Pausable for emergencies
-    * Permit-enabled for gasless approvals
-* What happens on-chain:
-    * FTK starts with zero supply after deployment.
-    * Only contracts with MINTER_ROLE (DepositRouter, eventually other routers if needed) can mint FTK.
-    * Only contracts with BURNER_ROLE (WithdrawalRouter, or contest resolution logic) can burn FTK.
+    * Mintable and burnable
+    * Can be paused
 
 2. Deposit Router:
-Purpose: This is the on-ramp for real money into your system. Users deposit external tokens (USDC, ETH, etc.) and receive FTK.
+Purpose: This is the on-ramp for real money into the system. Users deposit external tokens (USDC, ETH, etc.) and receive FTK.
 How it works in detail:
    * User approves DepositRouter to spend a supported token.
    * User calls deposit(asset, amount, minFTKOut).
@@ -71,13 +60,8 @@ How it works in detail:
         * Sends the fee portion to the Treasury (3).
         * Mints net FTK to the user (amount - fee).
 * Role in the ecosystem: Serves as gateway + revenue choke point. All FTK originates here.
-3. Treasury
-Purpose: Central storage for all fees collected by the protocol. Must be rewritten for other strategy (I forgot what it was tho)
-Role: Holds the funds safely and allows admin-controlled withdrawals for operations, liquidity, or buybacks.
-How it connects:
-  * DepositRouter sends the deposit fee directly to Treasury during the deposit call.
-  * Treasury keeps track of balances of multiple ERC20 tokens (e.g., USDC, FTK).
-  * Admin (or multisig) can withdraw funds to fund operations, provide liquidity for player markets, or buy back FTK.
+
+
 4. Player Market
 * Allows users to acquire exposure to players’ performance (like prediction markets).
 * Maintains liquidity pools for each player (or a pooled AMM).
