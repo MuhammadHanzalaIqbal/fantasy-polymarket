@@ -14,7 +14,11 @@ def is_contest_resolvable(contest_contract: Contract, contest_id: int) -> bool:
         True when contest is not resolved and has at least one entry.
     """
     contest_data = contest_contract.functions.contests(contest_id).call()
-    resolved_flag = bool(contest_data[5])
+    # Supports both tuple layouts:
+    # legacy: [entryFee, maxEntries, startTime, lockTime, rakeBps, resolved, totalPot]
+    # current: [entryFee, maxEntries, startTime, lockTime, resolved, totalPot]
+    resolved_index = 5 if len(contest_data) >= 7 else 4
+    resolved_flag = bool(contest_data[resolved_index])
     if resolved_flag:
         return False
 

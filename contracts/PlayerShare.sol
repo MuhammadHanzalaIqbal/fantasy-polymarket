@@ -8,6 +8,9 @@ contract ShareToken is ERC20 {
     address public manager;
     bool public initialized;
 
+    string private _customName;
+    string private _customSymbol;
+
     modifier onlyManager() {
         require(msg.sender == manager, "NOT_MANAGER");
         _;
@@ -26,12 +29,19 @@ contract ShareToken is ERC20 {
         string memory symbol_,
         address manager_
     ) external initializer {
-        manager = manager_;
+        require(manager_ != address(0), "ZERO_MANAGER");
 
-        assembly {
-            sstore(0x03, name_)
-            sstore(0x04, symbol_)
-        }
+        manager = manager_;
+        _customName = name_;
+        _customSymbol = symbol_;
+    }
+
+    function name() public view override returns (string memory) {
+        return _customName;
+    }
+
+    function symbol() public view override returns (string memory) {
+        return _customSymbol;
     }
 
     function mint(address to, uint256 amount) external onlyManager {
@@ -50,11 +60,11 @@ contract PlayerShareManager {
     address public owner;
     address public market;
 
-    // playerId => token
     mapping(uint256 => address) public playerToken;
 
     event PlayerTokenCreated(uint256 indexed playerId, address token);
     event MarketSet(address market);
+    event OwnershipTransferred(address newOwner);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "NOT_OWNER");
@@ -78,7 +88,9 @@ contract PlayerShareManager {
     }
 
     function transferOwnership(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "ZERO_OWNER");
         owner = newOwner;
+        emit OwnershipTransferred(newOwner);
     }
 
     function createPlayerToken(
@@ -117,5 +129,9 @@ contract PlayerShareManager {
         require(token != address(0), "NO_TOKEN");
 
         ShareToken(token).burn(from, amount);
+    }
+
+    function getPlayerToken(uint256 playerId) external view returns (address) {
+        return playerToken[playerId];
     }
 }

@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
+import {ERC1155} from "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+
 interface IERC20 {
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
     function transfer(address to, uint256 amount) external returns (bool);
@@ -18,43 +21,37 @@ interface IERC20Balance {
     function balanceOf(address user) external view returns (uint256);
 }
 
-contract TeamNFT {
-    string public name = "Fantasy Team";
-    string public symbol = "FTEAM";
-
-    uint256 public nextId;
+contract TeamNFT is ERC1155 {
     address public manager;
-
-    mapping(uint256 => address) public ownerOf;
-    mapping(address => uint256) public balanceOf;
+    uint256 public nextId;
 
     modifier onlyManager() {
         require(msg.sender == manager, "NOT_MANAGER");
         _;
     }
 
-    constructor(address _manager) {
+    constructor(address _manager)
+        ERC1155("https://api.yourgame.xyz/team/{id}.json")
+    {
         manager = _manager;
     }
 
     function mint(address to) external onlyManager returns (uint256 id) {
         id = ++nextId;
-        ownerOf[id] = to;
-        balanceOf[to]++;
+        _mint(to, id, 1, "");
     }
 }
 
-contract ContestManager {
+contract ContestManager is ReentrancyGuard {
 
     struct Contest {
         uint256 entryFee;
         uint256 maxEntries;
         uint256 startTime;
         uint256 lockTime;
-        uint256 rakeBps;
         bool resolved;
         uint256 totalPot;
-        uint256[] prizeBps; // e.g. [5000, 3000, 2000]
+        uint256[] prizeBps; // must sum to 10000
     }
 
     struct Entry {
@@ -65,7 +62,6 @@ contract ContestManager {
     }
 
     IERC20 public immutable ftk;
-    address public treasury;
     IOracleAdapter public oracle;
     IPlayerShareManager public shareManager;
     TeamNFT public teamNFT;
@@ -75,7 +71,7 @@ contract ContestManager {
 
     mapping(uint256 => Contest) public contests;
     mapping(uint256 => Entry[]) public contestEntries;
-    mapping(uint256 => mapping(address => bool)) public entered; 
+    mapping(uint256 => mapping(address => bool)) public entered;
 
     event ContestCreated(uint256 indexed contestId);
     event ContestEntered(uint256 indexed contestId, address indexed user);
@@ -88,15 +84,18 @@ contract ContestManager {
 
     constructor(
         address _ftk,
-        address _treasury,
         address _oracle,
         address _shareManager
     ) {
+        require(_ftk != address(0), "ZERO_FTK");
+        require(_oracle != address(0), "ZERO_ORACLE");
+        require(_shareManager != address(0), "ZERO_MANAGER");
+
         owner = msg.sender;
         ftk = IERC20(_ftk);
-        treasury = _treasury;
         oracle = IOracleAdapter(_oracle);
         shareManager = IPlayerShareManager(_shareManager);
+
         teamNFT = new TeamNFT(address(this));
     }
 
@@ -105,11 +104,10 @@ contract ContestManager {
         uint256 maxEntries,
         uint256 startTime,
         uint256 lockTime,
-        uint256 rakeBps,
         uint256[] calldata prizeBps
     ) external onlyOwner returns (uint256 contestId) {
         require(prizeBps.length > 0, "NO_PRIZES");
-        require(rakeBps <= 2000, "RAKE_TOO_HIGH"); // max 20%
+        require(lockTime < startTime, "BAD_TIMES");
 
         uint256 total;
         for (uint256 i = 0; i < prizeBps.length; i++) {
@@ -124,7 +122,6 @@ contract ContestManager {
             maxEntries: maxEntries,
             startTime: startTime,
             lockTime: lockTime,
-            rakeBps: rakeBps,
             resolved: false,
             totalPot: 0,
             prizeBps: prizeBps
@@ -133,7 +130,10 @@ contract ContestManager {
         emit ContestCreated(contestId);
     }
 
-    function enterContest(uint256 contestId, uint256[] calldata players) external {
+    function enterContest(uint256 contestId, uint256[] calldata players)
+        external
+        nonReentrant
+    {
         Contest storage c = contests[contestId];
 
         require(block.timestamp < c.lockTime, "CONTEST_LOCKED");
@@ -143,7 +143,6 @@ contract ContestManager {
 
         _validateRoster(msg.sender, players);
 
-        // escrow FTK
         require(
             ftk.transferFrom(msg.sender, address(this), c.entryFee),
             "FTK_TRANSFER_FAIL"
@@ -162,13 +161,15 @@ contract ContestManager {
 
         entered[contestId][msg.sender] = true;
 
-        // mint team NFT
         teamNFT.mint(msg.sender);
 
         emit ContestEntered(contestId, msg.sender);
     }
 
-    function _validateRoster(address user, uint256[] calldata players) internal view {
+    function _validateRoster(address user, uint256[] calldata players)
+        internal
+        view
+    {
         for (uint256 i = 0; i < players.length; i++) {
             address token = shareManager.playerToken(players[i]);
             require(token != address(0), "PLAYER_NOT_LISTED");
@@ -178,7 +179,7 @@ contract ContestManager {
         }
     }
 
-    function resolveContest(uint256 contestId) external {
+    function resolveContest(uint256 contestId) external nonReentrant {
         Contest storage c = contests[contestId];
         require(!c.resolved, "ALREADY_RESOLVED");
         require(block.timestamp >= c.startTime, "NOT_STARTED");
@@ -186,8 +187,6 @@ contract ContestManager {
         Entry[] storage entries = contestEntries[contestId];
         uint256 len = entries.length;
         require(len > 0, "NO_ENTRIES");
-
-        // compute scores
         for (uint256 i = 0; i < len; i++) {
             uint256 totalScore;
             uint256[] storage players = entries[i].players;
@@ -209,17 +208,8 @@ contract ContestManager {
             entries[j] = key;
         }
 
-        // compute rake
-        uint256 rake = (c.totalPot * c.rakeBps) / 10_000;
-        uint256 prizePool = c.totalPot - rake;
-        if (rake > 0) {
-            ftk.transfer(treasury, rake);
-        }
-
-        uint256 paid;
         for (uint256 i = 0; i < c.prizeBps.length && i < len; i++) {
-            uint256 prize = (prizePool * c.prizeBps[i]) / 10_000;
-            paid += prize;
+            uint256 prize = (c.totalPot * c.prizeBps[i]) / 10_000;
             ftk.transfer(entries[i].user, prize);
         }
 
@@ -228,15 +218,13 @@ contract ContestManager {
         emit ContestResolved(contestId);
     }
 
-    function setTreasury(address newTreasury) external onlyOwner {
-        treasury = newTreasury;
-    }
-
     function setOracle(address newOracle) external onlyOwner {
+        require(newOracle != address(0), "ZERO_ORACLE");
         oracle = IOracleAdapter(newOracle);
     }
 
     function transferOwnership(address newOwner) external onlyOwner {
+        require(newOwner != address(0), "ZERO_OWNER");
         owner = newOwner;
     }
 }

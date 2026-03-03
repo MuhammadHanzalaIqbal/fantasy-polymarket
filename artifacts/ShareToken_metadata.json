@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.27+commit.40a35a09"
+		"version": "0.8.34+commit.80d5c536"
 	},
 	"language": "Solidity",
 	"output": {
@@ -509,7 +509,7 @@
 		"compilationTarget": {
 			"contracts/PlayerShare.sol": "ShareToken"
 		},
-		"evmVersion": "cancun",
+		"evmVersion": "osaka",
 		"libraries": {},
 		"metadata": {
 			"bytecodeHash": "ipfs"
@@ -586,11 +586,11 @@
 			]
 		},
 		"contracts/PlayerShare.sol": {
-			"keccak256": "0x60fe128b97389cefca566f1295f7ff74d214b54a9002c881fd846d1b05e248d8",
+			"keccak256": "0x090736dd750b1c37b8598bb9dbc5cd6959a8817b308f5636d0d49cd87cf5e613",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://92c1392a0e9f1433adc88e8f5c6c098b12a049b7f9ec304f40d0e1f746b18de1",
-				"dweb:/ipfs/QmahrZ6fuM8QvLRM7Raoutx22KsxjwJBT7GrzWh5BU8qy7"
+				"bzz-raw://f5cefb5defeb114cbb9c029562f1ac4f5688080212799e98e004f89e43cd8d06",
+				"dweb:/ipfs/QmcgLnNg6NQDnRWj27UApJixdsTaozYLY9rAHcFForiE2Y"
 			]
 		}
 	},

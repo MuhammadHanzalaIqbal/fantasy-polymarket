@@ -15,6 +15,37 @@ from backend.app.services.contest_ops import is_contest_resolvable
 router = APIRouter(prefix="/contests", tags=["contests"])
 
 
+def _parse_contest_tuple(contest_data: tuple) -> ContestResponse:
+    """Parses contest tuple for both legacy and current contract layouts."""
+
+    if len(contest_data) >= 7:
+        # Legacy layout:
+        # [entryFee, maxEntries, startTime, lockTime, rakeBps, resolved, totalPot]
+        return ContestResponse(
+            contest_id=0,
+            entry_fee=int(contest_data[0]),
+            max_entries=int(contest_data[1]),
+            start_time=int(contest_data[2]),
+            lock_time=int(contest_data[3]),
+            rake_bps=int(contest_data[4]),
+            resolved=bool(contest_data[5]),
+            total_pot=int(contest_data[6]),
+        )
+
+    # Current layout:
+    # [entryFee, maxEntries, startTime, lockTime, resolved, totalPot]
+    return ContestResponse(
+        contest_id=0,
+        entry_fee=int(contest_data[0]),
+        max_entries=int(contest_data[1]),
+        start_time=int(contest_data[2]),
+        lock_time=int(contest_data[3]),
+        rake_bps=0,
+        resolved=bool(contest_data[4]),
+        total_pot=int(contest_data[5]),
+    )
+
+
 @router.get("", response_model=list[ContestResponse])
 def list_contests(
     blockchain_client: BlockchainClient = Depends(get_blockchain_client),
@@ -34,18 +65,9 @@ def list_contests(
     contests: list[ContestResponse] = []
     for contest_id in range(1, next_contest_id + 1):
         contest = contest_manager.functions.contests(contest_id).call()
-        contests.append(
-            ContestResponse(
-                contest_id=contest_id,
-                entry_fee=int(contest[0]),
-                max_entries=int(contest[1]),
-                start_time=int(contest[2]),
-                lock_time=int(contest[3]),
-                rake_bps=int(contest[4]),
-                resolved=bool(contest[5]),
-                total_pot=int(contest[6]),
-            )
-        )
+        parsed = _parse_contest_tuple(tuple(contest))
+        parsed.contest_id = contest_id
+        contests.append(parsed)
     return contests
 
 

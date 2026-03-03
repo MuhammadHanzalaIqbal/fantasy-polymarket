@@ -19,11 +19,6 @@
 					},
 					{
 						"internalType": "address",
-						"name": "_treasury",
-						"type": "address"
-					},
-					{
-						"internalType": "address",
 						"name": "admin",
 						"type": "address"
 					}
@@ -58,10 +53,21 @@
 				"type": "error"
 			},
 			{
+				"inputs": [
+					{
+						"internalType": "address",
+						"name": "token",
+						"type": "address"
+					}
+				],
+				"name": "SafeERC20FailedOperation",
+				"type": "error"
+			},
+			{
 				"anonymous": false,
 				"inputs": [
 					{
-						"indexed": false,
+						"indexed": true,
 						"internalType": "uint256",
 						"name": "playerId",
 						"type": "uint256"
@@ -82,12 +88,6 @@
 						"indexed": false,
 						"internalType": "uint256",
 						"name": "sharesBought",
-						"type": "uint256"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "fee",
 						"type": "uint256"
 					}
 				],
@@ -186,7 +186,7 @@
 				"anonymous": false,
 				"inputs": [
 					{
-						"indexed": false,
+						"indexed": true,
 						"internalType": "uint256",
 						"name": "playerId",
 						"type": "uint256"
@@ -208,41 +208,9 @@
 						"internalType": "uint256",
 						"name": "ftkReturned",
 						"type": "uint256"
-					},
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "fee",
-						"type": "uint256"
 					}
 				],
 				"name": "SoldShares",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": false,
-						"internalType": "uint256",
-						"name": "newFeeBps",
-						"type": "uint256"
-					}
-				],
-				"name": "TradingFeeUpdated",
-				"type": "event"
-			},
-			{
-				"anonymous": false,
-				"inputs": [
-					{
-						"indexed": false,
-						"internalType": "address",
-						"name": "newTreasury",
-						"type": "address"
-					}
-				],
-				"name": "TreasuryUpdated",
 				"type": "event"
 			},
 			{
@@ -253,19 +221,6 @@
 						"internalType": "bytes32",
 						"name": "",
 						"type": "bytes32"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "BPS_DENOMINATOR",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
 					}
 				],
 				"stateMutability": "view",
@@ -502,32 +457,6 @@
 				"type": "function"
 			},
 			{
-				"inputs": [
-					{
-						"internalType": "uint256",
-						"name": "feeBps",
-						"type": "uint256"
-					}
-				],
-				"name": "setTradingFee",
-				"outputs": [],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
-				"inputs": [
-					{
-						"internalType": "address",
-						"name": "_treasury",
-						"type": "address"
-					}
-				],
-				"name": "setTreasury",
-				"outputs": [],
-				"stateMutability": "nonpayable",
-				"type": "function"
-			},
-			{
 				"inputs": [],
 				"name": "shareManager",
 				"outputs": [
@@ -554,32 +483,6 @@
 						"internalType": "bool",
 						"name": "",
 						"type": "bool"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "tradingFeeBps",
-				"outputs": [
-					{
-						"internalType": "uint256",
-						"name": "",
-						"type": "uint256"
-					}
-				],
-				"stateMutability": "view",
-				"type": "function"
-			},
-			{
-				"inputs": [],
-				"name": "treasury",
-				"outputs": [
-					{
-						"internalType": "address",
-						"name": "",
-						"type": "address"
 					}
 				],
 				"stateMutability": "view",
@@ -649,6 +552,11 @@
 				"ReentrancyGuardReentrantCall()": [
 					{
 						"details": "Unauthorized reentrant call."
+					}
+				],
+				"SafeERC20FailedOperation(address)": [
+					{
+						"details": "An operation with an ERC-20 token failed."
 					}
 				]
 			},
@@ -724,12 +632,44 @@
 				"dweb:/ipfs/QmaWCW7ahEQqFjwhSUhV7Ae7WhfNvzSpE7DQ58hvEooqPL"
 			]
 		},
+		"@openzeppelin/contracts/interfaces/IERC1363.sol": {
+			"keccak256": "0xd5ea07362ab630a6a3dee4285a74cf2377044ca2e4be472755ad64d7c5d4b69d",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://da5e832b40fc5c3145d3781e2e5fa60ac2052c9d08af7e300dc8ab80c4343100",
+				"dweb:/ipfs/QmTzf7N5ZUdh5raqtzbM11yexiUoLC9z3Ws632MCuycq1d"
+			]
+		},
+		"@openzeppelin/contracts/interfaces/IERC165.sol": {
+			"keccak256": "0x0afcb7e740d1537b252cb2676f600465ce6938398569f09ba1b9ca240dde2dfc",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://1c299900ac4ec268d4570ecef0d697a3013cd11a6eb74e295ee3fbc945056037",
+				"dweb:/ipfs/Qmab9owJoxcA7vJT5XNayCMaUR1qxqj1NDzzisduwaJMcZ"
+			]
+		},
+		"@openzeppelin/contracts/interfaces/IERC20.sol": {
+			"keccak256": "0x1a6221315ce0307746c2c4827c125d821ee796c74a676787762f4778671d4f44",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://1bb2332a7ee26dd0b0de9b7fe266749f54820c99ab6a3bcb6f7e6b751d47ee2d",
+				"dweb:/ipfs/QmcRWpaBeCYkhy68PR3B4AgD7asuQk7PwkWxrvJbZcikLF"
+			]
+		},
 		"@openzeppelin/contracts/token/ERC20/IERC20.sol": {
 			"keccak256": "0x74ed01eb66b923d0d0cfe3be84604ac04b76482a55f9dd655e1ef4d367f95bc2",
 			"license": "MIT",
 			"urls": [
 				"bzz-raw://5282825a626cfe924e504274b864a652b0023591fa66f06a067b25b51ba9b303",
 				"dweb:/ipfs/QmeCfPykghhMc81VJTrHTC7sF6CRvaA1FXVq2pJhwYp1dV"
+			]
+		},
+		"@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol": {
+			"keccak256": "0x304d732678032a9781ae85c8f204c8fba3d3a5e31c02616964e75cfdc5049098",
+			"license": "MIT",
+			"urls": [
+				"bzz-raw://299ced486011781dc98f638059678323c03079fefae1482abaa2135b22fa92d0",
+				"dweb:/ipfs/QmbZNbcPTBxNvwChavN2kkZZs7xHhYL7mv51KrxMhsMs3j"
 			]
 		},
 		"@openzeppelin/contracts/utils/Context.sol": {
@@ -765,11 +705,11 @@
 			]
 		},
 		"contracts/PlayerMarket.sol": {
-			"keccak256": "0x033300e01315077e2aa1979d06daa2f517c8a72729d3d23b4af80504d375c756",
+			"keccak256": "0x6e9ec52fffd29a6278ab80b3f80dfcc8cff33ac8cbdf78bf5cf054bfb8c97306",
 			"license": "MIT",
 			"urls": [
-				"bzz-raw://43d9c93d7be716fd11952d0f4a92317eb9050b9bc1745b4472642093b8b9bdb7",
-				"dweb:/ipfs/Qmas9At9cwzvsPiwdcPkCjpVY983reYppMsSEYfykCHjqG"
+				"bzz-raw://98b641c3401e7150fa13cdf0c948d508ad3d50e2b9aa3be651c5ffe0c9005b6b",
+				"dweb:/ipfs/QmaAg1bnUgj3zbFPCiVxUuFEwbaLfRqrniH4K7rUgkWbBM"
 			]
 		}
 	},
