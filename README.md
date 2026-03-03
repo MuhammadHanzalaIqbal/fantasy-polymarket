@@ -39,9 +39,9 @@ The backend is functional for MVP demos (read APIs + selected write/admin flows)
 - `PlayerMarket`
   - Etherscan: https://sepolia.etherscan.io/address/0x9540eb6b9252e259398b4f9dcb90f56064e0b15c#writeContract
   - Contract: `0x9540eB6b9252E259398B4f9DCB90f56064E0b15C`
-- `PlayerShares`
-  - Etherscan: https://sepolia.etherscan.io/address/0x8f3633053a47b91db07e15ac2057b62a905a82fd#writeContract
-  - Contract: `0x8f3633053A47B91Db07E15Ac2057B62a905a82FD`
+- `PlayerShareManager`
+  - Etherscan: https://sepolia.etherscan.io/address/0x63ea24cd1e2e47d9e57eddfab3045e3aa68ca2a5#code
+  - Contract: `0x63Ea24Cd1e2e47D9e57EDdFaB3045E3aA68ca2A5`
 - `OracleAdapter`
   - Etherscan: https://sepolia.etherscan.io/address/0x62fe83664239397d0b6ea37bcbe1b775520c204c#writeContract
   - Contract: `0x62Fe83664239397d0b6Ea37bcbE1b775520c204c`
