@@ -28,6 +28,35 @@ The backend is functional for MVP demos (read APIs + selected write/admin flows)
 
 ---
 
+## Existing Deployed Contracts (Sepolia)
+
+- `FTK`
+  - Etherscan: https://sepolia.etherscan.io/address/0x82021ccfed084fd8578cb38d8d4323345c363079#writeContract
+  - Contract: `0x82021CcfED084fD8578cb38d8D4323345C363079`
+- `DepositRouter`
+  - Etherscan: https://sepolia.etherscan.io/address/0xdf582d404867f12978e3e2e9d6e03ea4f5cf55da#writeContract
+  - Contract: `0xDF582D404867F12978E3e2E9D6E03Ea4F5Cf55Da`
+- `PlayerMarket`
+  - Etherscan: https://sepolia.etherscan.io/address/0x9540eb6b9252e259398b4f9dcb90f56064e0b15c#writeContract
+  - Contract: `0x9540EB6B9252E259398B4F9dcB90F56064E0b15c`
+- `PlayerShares`
+  - Etherscan: https://sepolia.etherscan.io/address/0x8f3633053a47b91db07e15ac2057b62a905a82fd#writeContract
+  - Contract: `0x8F3633053A47B91Db07E15Ac2057b62A905A82fD`
+- `OracleAdapter`
+  - Etherscan: https://sepolia.etherscan.io/address/0x62fe83664239397d0b6ea37bcbe1b775520c204c#writeContract
+  - Contract: `0x62Fe83664239397d0b6Ea37bcbE1b775520c204c`
+- `ContestManager`
+  - Etherscan: https://sepolia.etherscan.io/address/0xd75b933fe234b46709f24a73afe01e39f5fb4567#writeContract
+  - Contract: `0xD75B933fE234B46709f24a73AFe01E39f5fB4567`
+- `WithdrawalRouter`
+  - Etherscan: https://sepolia.etherscan.io/address/0x5e4986bcd65a1d9668b65a989e0be0b43aac1e51#writeContract
+  - Contract: `0x5E4986bCD65A1d9668B65a989E0be0B43AAC1E51`
+
+- Faucet: https://console.optimism.io/faucet
+- Note: For withdrawals, `FTK` burn capability must be enabled for `WithdrawalRouter`.
+
+---
+
 ## Architecture Overview
 
 ### On-chain responsibilities
