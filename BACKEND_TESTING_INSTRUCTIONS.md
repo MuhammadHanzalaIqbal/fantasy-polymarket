@@ -197,9 +197,9 @@ curl -X POST "http://127.0.0.1:8001/oracle/submit-matchweek" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $API_KEY" \
   -d "{
-    \"matchweek\": 1,
+    \"matchweek\": 14,
     \"timestamp\": $TS,
-    \"player_ids\": [1000000000000000000,2000000000000000000,3000000000000000000],
+    \"player_ids\": [1000000000000000000,2000000000000000000,8000000000000000000],
     \"scores\": [10,8,6]
   }"
 ```
