@@ -37,8 +37,8 @@ The backend is functional for MVP demos (read APIs + selected write/admin flows)
   - Etherscan: https://sepolia.etherscan.io/address/0xdf582d404867f12978e3e2e9d6e03ea4f5cf55da#writeContract
   - Contract: `0xDF582D404867F12978E3e2E9D6E03Ea4F5Cf55Da`
 - `PlayerMarket`
-  - Etherscan: https://sepolia.etherscan.io/address/0x9540eb6b9252e259398b4f9dcb90f56064e0b15c#writeContract
-  - Contract: `0x9540eB6b9252E259398B4f9DCB90f56064E0b15C`
+  - Etherscan: https://sepolia.etherscan.io/address/0x96f1b5edb7fed2e3c0bd09c22b289409bc6bffea#code
+  - Contract: `0x96f1b5Edb7Fed2E3c0BD09C22b289409BC6BfFEa`
 - `PlayerShareManager`
   - Etherscan: https://sepolia.etherscan.io/address/0x63ea24cd1e2e47d9e57eddfab3045e3aa68ca2a5#code
   - Contract: `0x63Ea24Cd1e2e47D9e57EDdFaB3045E3aA68ca2A5`
@@ -46,8 +46,8 @@ The backend is functional for MVP demos (read APIs + selected write/admin flows)
   - Etherscan: https://sepolia.etherscan.io/address/0x62fe83664239397d0b6ea37bcbe1b775520c204c#writeContract
   - Contract: `0x62Fe83664239397d0b6Ea37bcbE1b775520c204c`
 - `ContestManager`
-  - Etherscan: https://sepolia.etherscan.io/address/0xd75b933fe234b46709f24a73afe01e39f5fb4567#writeContract
-  - Contract: `0xd75B933fe234B46709f24A73afe01e39F5Fb4567`
+  - Etherscan: https://sepolia.etherscan.io/address/0x8b7b7b534a3552a8d2ea0eb91313aa3af475b47e#writeContract
+  - Contract: `0x8B7b7b534a3552A8d2Ea0EB91313AA3aF475b47e`
 - `WithdrawalRouter`
   - Etherscan: https://sepolia.etherscan.io/address/0x5e4986bcd65a1d9668b65a989e0be0b43aac1e51#writeContract
   - Contract: `0x5E4986bCD65A1d9668B65a989E0be0B43AAC1E51`
