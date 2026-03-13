@@ -2,9 +2,11 @@
 
 from fastapi import FastAPI
 
+from backend.app.api.routes.admin import router as admin_router
 from backend.app.api.routes.contests import router as contests_router
 from backend.app.api.routes.health import router as health_router
 from backend.app.api.routes.market import router as market_router
+from backend.app.api.routes.me import router as me_router
 from backend.app.api.routes.oracle_ops import router as oracle_router
 from backend.app.api.routes.players import router as players_router
 from backend.app.api.routes.portfolio import router as portfolio_router
@@ -26,6 +28,8 @@ def create_app() -> FastAPI:
     app.include_router(contests_router)
     app.include_router(portfolio_router)
     app.include_router(oracle_router)
+    app.include_router(admin_router)
+    app.include_router(me_router)
     return app
 
 
