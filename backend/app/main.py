@@ -24,7 +24,6 @@ def create_app() -> FastAPI:
         debug=settings.debug,
     )
 
-   
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[

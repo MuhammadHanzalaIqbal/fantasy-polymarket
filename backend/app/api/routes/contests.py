@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from backend.app.api.deps import get_blockchain_client, require_demo_admin
+from backend.app.api.errors import raise_http_from_chain_error
 from backend.app.blockchain.client import BlockchainClient
 from backend.app.config import get_settings
 from backend.app.models.schemas import (
@@ -63,17 +64,20 @@ def list_contests(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="contest_manager_address is not configured",
         )
-    contest_manager = blockchain_client.contract(
-        "ContestManager", settings.contest_manager_address
-    )
-    next_contest_id = int(contest_manager.functions.nextContestId().call())
-    contests: list[ContestResponse] = []
-    for contest_id in range(1, next_contest_id + 1):
-        contest = contest_manager.functions.contests(contest_id).call()
-        parsed = _parse_contest_tuple(tuple(contest))
-        parsed.contest_id = contest_id
-        contests.append(parsed)
-    return contests
+    try:
+        contest_manager = blockchain_client.contract(
+            "ContestManager", settings.contest_manager_address
+        )
+        next_contest_id = int(contest_manager.functions.nextContestId().call())
+        contests: list[ContestResponse] = []
+        for contest_id in range(1, next_contest_id + 1):
+            contest = contest_manager.functions.contests(contest_id).call()
+            parsed = _parse_contest_tuple(tuple(contest))
+            parsed.contest_id = contest_id
+            contests.append(parsed)
+        return contests
+    except Exception as error:
+        raise_http_from_chain_error(error, operation="contest list lookup")
 
 
 @router.get("/{contest_id}/leaderboard", response_model=list[LeaderboardEntryResponse])
@@ -90,29 +94,34 @@ def get_leaderboard(
             detail="contest_manager_address is not configured",
         )
 
-    contest_manager = blockchain_client.contract(
-        "ContestManager", settings.contest_manager_address
-    )
-    entries: list[LeaderboardEntryResponse] = []
-    index = 0
-    while True:
-        try:
-            entry = contest_manager.functions.contestEntries(contest_id, index).call()
-            entries.append(
-                LeaderboardEntryResponse(
-                    rank=index + 1,
-                    user=str(entry[0]),
-                    score=int(entry[2]),
+    try:
+        contest_manager = blockchain_client.contract(
+            "ContestManager", settings.contest_manager_address
+        )
+        entries: list[LeaderboardEntryResponse] = []
+        index = 0
+        while True:
+            try:
+                entry = contest_manager.functions.contestEntries(
+                    contest_id, index
+                ).call()
+                entries.append(
+                    LeaderboardEntryResponse(
+                        rank=index + 1,
+                        user=str(entry[0]),
+                        score=int(entry[2]),
+                    )
                 )
-            )
-            index += 1
-        except Exception:
-            break
+                index += 1
+            except Exception:
+                break
 
-    entries.sort(key=lambda row: row.score, reverse=True)
-    for rank, entry in enumerate(entries, start=1):
-        entry.rank = rank
-    return entries
+        entries.sort(key=lambda row: row.score, reverse=True)
+        for rank, entry in enumerate(entries, start=1):
+            entry.rank = rank
+        return entries
+    except Exception as error:
+        raise_http_from_chain_error(error, operation="contest leaderboard lookup")
 
 
 @router.get("/{contest_id}/results", response_model=ContestResultsResponse)
@@ -127,13 +136,16 @@ def get_contest_results(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="contest_manager_address is not configured",
         )
-    contest_manager = blockchain_client.contract(
-        "ContestManager", settings.contest_manager_address
-    )
-    return build_contest_results(
-        contest_manager_contract=contest_manager,
-        contest_id=contest_id,
-    )
+    try:
+        contest_manager = blockchain_client.contract(
+            "ContestManager", settings.contest_manager_address
+        )
+        return build_contest_results(
+            contest_manager_contract=contest_manager,
+            contest_id=contest_id,
+        )
+    except Exception as error:
+        raise_http_from_chain_error(error, operation="contest results lookup")
 
 
 @router.post("/{contest_id}/entry-intent", response_model=ContestEntryIntentResponse)
@@ -155,20 +167,27 @@ def create_entry_intent(
                 "must be configured"
             ),
         )
-    contest_manager = blockchain_client.contract(
-        "ContestManager", settings.contest_manager_address
-    )
-    share_manager = blockchain_client.contract(
-        "PlayerShareManager", settings.player_share_manager_address
-    )
-    return build_contest_entry_intent(
-        contest_manager_contract=contest_manager,
-        share_manager_contract=share_manager,
-        wallet_address=request.wallet_address,
-        contest_id=contest_id,
-        players=request.players,
-        chain_id=settings.chain_id,
-    )
+    try:
+        contest_manager = blockchain_client.contract(
+            "ContestManager", settings.contest_manager_address
+        )
+        share_manager = blockchain_client.contract(
+            "PlayerShareManager", settings.player_share_manager_address
+        )
+        return build_contest_entry_intent(
+            contest_manager_contract=contest_manager,
+            share_manager_contract=share_manager,
+            wallet_address=request.wallet_address,
+            contest_id=contest_id,
+            players=request.players,
+            chain_id=settings.chain_id,
+        )
+    except Exception as error:
+        raise_http_from_chain_error(
+            error,
+            operation="contest entry intent build",
+            read_operation=False,
+        )
 
 
 @router.post(
@@ -188,10 +207,10 @@ def resolve_contest_route(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="contest_manager_address is not configured",
         )
-    contest_manager = blockchain_client.contract(
-        "ContestManager", settings.contest_manager_address
-    )
     try:
+        contest_manager = blockchain_client.contract(
+            "ContestManager", settings.contest_manager_address
+        )
         return resolve_contest_tx(
             blockchain_client=blockchain_client,
             contest_manager_contract=contest_manager,
@@ -202,4 +221,10 @@ def resolve_contest_route(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(error),
         ) from error
+    except Exception as error:
+        raise_http_from_chain_error(
+            error,
+            operation="contest resolve transaction",
+            read_operation=False,
+        )
 

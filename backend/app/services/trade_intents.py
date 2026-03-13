@@ -12,6 +12,18 @@ from backend.app.services.quotes import estimate_quote
 
 PLAYER_ID_SCALE = 10**18
 BPS_DENOMINATOR = 10_000
+ERC20_ALLOWANCE_ABI = [
+    {
+        "inputs": [
+            {"internalType": "address", "name": "owner", "type": "address"},
+            {"internalType": "address", "name": "spender", "type": "address"},
+        ],
+        "name": "allowance",
+        "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+        "stateMutability": "view",
+        "type": "function",
+    }
+]
 
 
 def _resolve_player_id_for_market(market_contract: Contract, player_id: int) -> int:
@@ -79,6 +91,7 @@ def build_trade_intent(
         Trade intent payload including quote and unsigned transaction fields.
     """
     Web3.to_checksum_address(wallet_address)
+    checksum_wallet = Web3.to_checksum_address(wallet_address)
     resolved_player_id = _resolve_player_id_for_market(market_contract, player_id)
     reference_price_wei = int(
         market_contract.functions.getSharePrice(resolved_player_id).call()
@@ -93,12 +106,34 @@ def build_trade_intent(
         slippage_bps=slippage_bps,
     )
 
+    approval_token: str | None = None
+    approval_spender: str | None = None
+    required_allowance_wei: int | None = None
+    current_allowance_wei: int | None = None
+    approval_sufficient: bool | None = None
+
     if side == "buy":
         tx_data = encode_contract_call(
             contract=market_contract,
             function_name="buyShares",
             args=[resolved_player_id, amount, min_amount_out],
         )
+        token_address = str(market_contract.functions.ftk().call())
+        token_contract = market_contract.w3.eth.contract(
+            address=Web3.to_checksum_address(token_address),
+            abi=ERC20_ALLOWANCE_ABI,
+        )
+        allowance = int(
+            token_contract.functions.allowance(
+                checksum_wallet,
+                Web3.to_checksum_address(market_contract.address),
+            ).call()
+        )
+        approval_token = token_address
+        approval_spender = market_contract.address
+        required_allowance_wei = amount
+        current_allowance_wei = allowance
+        approval_sufficient = allowance >= amount
     else:
         tx_data = encode_contract_call(
             contract=market_contract,
@@ -119,4 +154,9 @@ def build_trade_intent(
             value_wei=0,
             chain_id=chain_id,
         ),
+        approval_token=approval_token,
+        approval_spender=approval_spender,
+        required_allowance_wei=required_allowance_wei,
+        current_allowance_wei=current_allowance_wei,
+        approval_sufficient=approval_sufficient,
     )

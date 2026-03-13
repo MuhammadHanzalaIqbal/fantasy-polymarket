@@ -114,6 +114,7 @@ def test_contest_entry_intent_success(monkeypatch) -> None:
             wallet_address="0x0000000000000000000000000000000000000001",
             entry_fee=10,
             players=[1, 2],
+            resolved_players=[1, 2],
             tx_intent=TransactionIntent(
                 to="0xabc",
                 data="0xdeadbeef",

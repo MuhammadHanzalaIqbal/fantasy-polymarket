@@ -1,5 +1,7 @@
 """Pydantic request and response schemas for API endpoints."""
 
+from __future__ import annotations
+
 from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
@@ -101,6 +103,11 @@ class TradeIntentResponse(BaseModel):
     min_amount_out: int
     reference_price_wei: int
     tx_intent: TransactionIntent
+    approval_token: str | None = None
+    approval_spender: str | None = None
+    required_allowance_wei: int | None = None
+    current_allowance_wei: int | None = None
+    approval_sufficient: bool | None = None
 
 
 class ContestEntryIntentRequest(BaseModel):
@@ -117,7 +124,13 @@ class ContestEntryIntentResponse(BaseModel):
     wallet_address: str
     entry_fee: int
     players: list[int]
+    resolved_players: list[int]
     tx_intent: TransactionIntent
+    approval_token: str | None = None
+    approval_spender: str | None = None
+    required_allowance_wei: int | None = None
+    current_allowance_wei: int | None = None
+    approval_sufficient: bool | None = None
 
 
 class AdminCreatePlayerRequest(BaseModel):
@@ -132,8 +145,10 @@ class AdminCreatePlayerResponse(BaseModel):
     """Response model for admin player creation workflow."""
 
     player_id: int
-    create_token_tx: "TransactionResponse"
-    add_market_tx: "TransactionResponse"
+    token_already_exists: bool
+    player_already_listed: bool
+    create_token_tx: TransactionResponse | None
+    add_market_tx: TransactionResponse | None
 
 
 class AdminCreateContestRequest(BaseModel):
@@ -146,7 +161,7 @@ class AdminCreateContestRequest(BaseModel):
     prize_bps: list[int] = Field(..., min_length=1)
 
     @model_validator(mode="after")
-    def validate_prize_distribution(self) -> "AdminCreateContestRequest":
+    def validate_prize_distribution(self) -> AdminCreateContestRequest:
         """Validates prize payout percentages and contest timing bounds."""
         if any(value <= 0 for value in self.prize_bps):
             raise ValueError("prize_bps values must be positive")

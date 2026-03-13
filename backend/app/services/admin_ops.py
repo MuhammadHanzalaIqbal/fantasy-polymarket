@@ -45,20 +45,38 @@ def create_player_and_market_listing(
     Returns:
         Player creation and listing transaction metadata.
     """
-    create_token_result = blockchain_client.send_transaction(
-        contract=share_manager_contract,
-        function_name="createPlayerToken",
-        args=(request.player_id, request.token_name, request.token_symbol),
+    token_address = str(
+        share_manager_contract.functions.playerToken(request.player_id).call()
     )
-    add_market_result = blockchain_client.send_transaction(
-        contract=market_contract,
-        function_name="addPlayer",
-        args=(request.player_id,),
-    )
+    token_already_exists = token_address != "0x0000000000000000000000000000000000000000"
+    market_pool = market_contract.functions.players(request.player_id).call()
+    player_already_listed = bool(market_pool[2])
+
+    create_token_response: TransactionResponse | None = None
+    add_market_response: TransactionResponse | None = None
+
+    if not token_already_exists:
+        create_token_result = blockchain_client.send_transaction(
+            contract=share_manager_contract,
+            function_name="createPlayerToken",
+            args=(request.player_id, request.token_name, request.token_symbol),
+        )
+        create_token_response = _to_transaction_response(create_token_result)
+
+    if not player_already_listed:
+        add_market_result = blockchain_client.send_transaction(
+            contract=market_contract,
+            function_name="addPlayer",
+            args=(request.player_id,),
+        )
+        add_market_response = _to_transaction_response(add_market_result)
+
     return AdminCreatePlayerResponse(
         player_id=request.player_id,
-        create_token_tx=_to_transaction_response(create_token_result),
-        add_market_tx=_to_transaction_response(add_market_result),
+        token_already_exists=token_already_exists,
+        player_already_listed=player_already_listed,
+        create_token_tx=create_token_response,
+        add_market_tx=add_market_response,
     )
 
 
