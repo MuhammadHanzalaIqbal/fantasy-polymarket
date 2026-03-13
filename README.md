@@ -144,12 +144,19 @@ Design rule: backend improves UX and operations, but does not custody funds.
 - `GET /market/{player_id}/quote`
 - `GET /contests`
 - `GET /contests/{contest_id}/leaderboard`
+- `GET /contests/{contest_id}/results`
 - `GET /portfolio/{wallet_address}`
+- `GET /me/portfolio?wallet=0x...`
+- `POST /market/{player_id}/trade-intent`
+- `POST /contests/{contest_id}/entry-intent`
 
 ### Demo admin/write endpoints
 
 - `POST /oracle/submit-matchweek`
 - `POST /contests/{contest_id}/resolve`
+- `POST /admin/players`
+- `POST /admin/contests`
+- `POST /admin/contests/{contest_id}/resolve`
 
 Both write endpoints require `X-API-Key` matching `DEMO_ADMIN_API_KEY`.
 
@@ -245,11 +252,14 @@ Manual testing sequence:
 1. `GET /health`
 2. `GET /players`
 3. `GET /market/{player_id}/quote`
-4. `GET /contests`
-5. `POST /oracle/submit-matchweek` (admin)
-6. `POST /contests/{contest_id}/resolve` (admin)
-7. `GET /contests/{contest_id}/leaderboard`
-8. `GET /portfolio/{wallet_address}`
+4. `POST /market/{player_id}/trade-intent` and sign/send with wallet
+5. `GET /contests`
+6. `POST /contests/{contest_id}/entry-intent` and sign/send with wallet
+7. `POST /oracle/submit-matchweek` (admin)
+8. `POST /admin/contests/{contest_id}/resolve` (admin)
+9. `GET /contests/{contest_id}/leaderboard`
+10. `GET /contests/{contest_id}/results`
+11. `GET /me/portfolio?wallet=0x...`
 
 ---
 
