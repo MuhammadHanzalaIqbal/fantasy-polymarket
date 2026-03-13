@@ -22,24 +22,24 @@ To support all requested user/admin operations through backend + frontend, these
 
 1. Use connected wallet as primary identity in app state.
 2. Trade execution flow using:
-   - `POST /market/{player_id}/trade-intent`
-   - wallet `eth_sendTransaction` with returned intent.
+  - `POST /market/{player_id}/trade-intent`
+  - wallet `eth_sendTransaction` with returned intent.
 3. Contest entry execution flow using:
-   - `POST /contests/{contest_id}/entry-intent`
-   - wallet `eth_sendTransaction` with returned intent.
+  - `POST /contests/{contest_id}/entry-intent`
+  - wallet `eth_sendTransaction` with returned intent.
 4. Contest results page using:
-   - `GET /contests/{contest_id}/results`.
+  - `GET /contests/{contest_id}/results`.
 5. Portfolio page migration to:
-   - `GET /me/portfolio?wallet=...` (keep old `/portfolio/{wallet}` as fallback/debug).
+  - `GET /me/portfolio?wallet=...` (keep old `/portfolio/{wallet}` as fallback/debug).
 
 ### Admin flows
 
 1. Create player UI:
-   - `POST /admin/players` with `X-API-Key`.
+  - `POST /admin/players` with `X-API-Key`.
 2. Create contest UI:
-   - `POST /admin/contests` with `X-API-Key`.
+  - `POST /admin/contests` with `X-API-Key`.
 3. Resolve contest UI:
-   - `POST /admin/contests/{contest_id}/resolve` with `X-API-Key`.
+  - `POST /admin/contests/{contest_id}/resolve` with `X-API-Key`.
 
 ## Required API client upgrades
 
@@ -177,3 +177,4 @@ System:
 
 - Data refreshes after each successful transaction.
 - Error states are visible and actionable.
+
