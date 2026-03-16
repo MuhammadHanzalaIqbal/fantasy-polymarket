@@ -22,7 +22,7 @@ import {
   sendIntentTransaction,
   waitForReceipt,
 } from "../services/tx";
-import { formatCompactNumber } from "../utils/format";
+import { formatFtk, humanToWei } from "../utils/format";
 
 function formatPlayerId(id: string | number | undefined) {
   if (!id) return "";
@@ -40,7 +40,7 @@ export default function PlayerMarket() {
   const actionLockRef = useRef(false);
 
   const [side, setSide] = useState<QuoteSide>("buy");
-  const [amount, setAmount] = useState<number>(1);
+  const [amount, setAmount] = useState<number>(1); // Human FTK (e.g. 1 = 1 FTK)
   const [slippageBps, setSlippageBps] = useState<number>(100);
   const [quote, setQuote] = useState<QuoteResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -57,7 +57,7 @@ export default function PlayerMarket() {
     setQuoteLoading(true);
 
     try {
-      const q = await api.marketQuote(pid, side, amount);
+      const q = await api.marketQuote(pid, side, humanToWei(amount));
       setQuote(q);
     } catch (e: any) {
       setErr(e?.message ?? String(e));
@@ -87,7 +87,7 @@ export default function PlayerMarket() {
       let intent = await api.tradeIntent(pid, {
         wallet_address: wallet,
         side,
-        amount,
+        amount: humanToWei(amount),
         slippage_bps: slippageBps,
       });
 
@@ -117,7 +117,7 @@ export default function PlayerMarket() {
         intent = await api.tradeIntent(pid, {
           wallet_address: wallet,
           side,
-          amount,
+          amount: humanToWei(amount),
           slippage_bps: slippageBps,
         });
       }
@@ -146,7 +146,7 @@ export default function PlayerMarket() {
     }
   }
 
-  const disableActions = !pid || amount < 1 || quoteLoading || txBusy;
+  const disableActions = !pid || amount <= 0 || quoteLoading || txBusy;
 
   return (
     <Stack gap="xl">
@@ -260,10 +260,12 @@ export default function PlayerMarket() {
             </div>
 
             <NumberInput
-              label="Amount"
+              label="Amount (FTK)"
               value={amount}
-              onChange={(value) => setAmount(Number(value) || 0)}
-              min={1}
+              onChange={(value) => setAmount(Number(value) ?? 0)}
+              min={0.001}
+              step={0.1}
+              description="e.g. 1 or 1.5"
               disabled={txBusy}
               styles={darkInputStyles}
             />
@@ -335,15 +337,15 @@ export default function PlayerMarket() {
               <SimpleGrid cols={2} spacing="md">
                 <MetricTile
                   label="Estimated Output"
-                  value={formatCompactNumber(quote.estimated_amount_out)}
+                  value={formatFtk(quote.estimated_amount_out)}
                 />
                 <MetricTile
-                  label="Reference Price"
-                  value={formatCompactNumber(quote.reference_price_wei)}
+                  label="Reference Price (FTK)"
+                  value={formatFtk(quote.reference_price_wei)}
                 />
                 <MetricTile
-                  label="Amount In"
-                  value={formatCompactNumber(quote.amount_in)}
+                  label="Amount In (FTK)"
+                  value={formatFtk(quote.amount_in)}
                 />
                 <MetricTile label="Trade Side" value={quote.side.toUpperCase()} />
               </SimpleGrid>

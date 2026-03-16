@@ -15,7 +15,7 @@ import {
 } from "@mantine/core";
 import { api } from "../services/api";
 import type { ContestResponse } from "../services/api";
-import { formatCompactNumber, formatTimestamp } from "../utils/format";
+import { formatCompactNumber, formatFtk, formatTimestamp } from "../utils/format";
 
 function getContestState(contest: ContestResponse) {
   const now = Date.now() / 1000;
@@ -61,7 +61,22 @@ export default function Contests() {
     [contests]
   );
 
-  const featuredContest = contests[0] ?? null;
+  const sortedContests = useMemo(() => {
+    const now = Date.now() / 1000;
+    return [...contests].sort((a, b) => {
+      const aOpen = !a.resolved && now < Number(a.lock_time);
+      const bOpen = !b.resolved && now < Number(b.lock_time);
+      if (aOpen && !bOpen) return -1;
+      if (!aOpen && bOpen) return 1;
+      const aLocked = !a.resolved && now >= Number(a.lock_time);
+      const bLocked = !b.resolved && now >= Number(b.lock_time);
+      if (aLocked && !bLocked) return -1;
+      if (!aLocked && bLocked) return 1;
+      return 0;
+    });
+  }, [contests]);
+
+  const featuredContest = sortedContests[0] ?? null;
   const featuredState = featuredContest ? getContestState(featuredContest) : null;
 
   return (
@@ -210,7 +225,7 @@ export default function Contests() {
           <SimpleGrid cols={{ base: 2, md: 4 }} spacing="md">
             <MetricTile
               label="Entry Fee"
-              value={formatCompactNumber(featuredContest.entry_fee)}
+              value={formatFtk(featuredContest.entry_fee)}
             />
             <MetricTile
               label="Max Entries"
@@ -218,7 +233,7 @@ export default function Contests() {
             />
             <MetricTile
               label="Total Pot"
-              value={formatCompactNumber(featuredContest.total_pot)}
+              value={formatFtk(featuredContest.total_pot)}
             />
             <MetricTile
               label="Rake BPS"
@@ -246,27 +261,48 @@ export default function Contests() {
               </Button>
             </Link>
 
-            <Button
-              radius="xl"
-              disabled
-              variant="light"
-              styles={{
-                root: {
-                  fontWeight: 800,
-                  background: "rgba(255,255,255,0.06)",
-                  color: "white",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  opacity: 0.65,
-                  cursor: "not-allowed",
-                },
-              }}
-            >
-              {featuredContest.resolved
-                ? "Contest Finished"
-                : featuredState.locked
-                ? "Entries Closed"
-                : "Enter Contest (Soon)"}
-            </Button>
+            {featuredContest.resolved || featuredState.locked ? (
+              <Button
+                radius="xl"
+                disabled
+                variant="light"
+                styles={{
+                  root: {
+                    fontWeight: 800,
+                    background: "rgba(255,255,255,0.06)",
+                    color: "white",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    opacity: 0.65,
+                    cursor: "not-allowed",
+                  },
+                }}
+              >
+                {featuredContest.resolved
+                  ? "Contest Finished"
+                  : "Entries Closed"}
+              </Button>
+            ) : (
+              <Link
+                to={`/contests/${featuredContest.contest_id}`}
+                style={{ textDecoration: "none" }}
+              >
+                <Button
+                  radius="xl"
+                  variant="light"
+                  styles={{
+                    root: {
+                      fontWeight: 800,
+                      background:
+                        "linear-gradient(135deg, rgba(22,163,74,0.25), rgba(37,99,235,0.18))",
+                      color: "white",
+                      border: "1px solid rgba(255,255,255,0.12)",
+                    },
+                  }}
+                >
+                  Enter Contest
+                </Button>
+              </Link>
+            )}
           </Group>
         </Card>
       )}
@@ -280,7 +316,7 @@ export default function Contests() {
         </Text>
 
         <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="lg">
-          {contests.map((c) => {
+          {sortedContests.map((c) => {
             const state = getContestState(c);
 
             return (
@@ -320,7 +356,7 @@ export default function Contests() {
                             wordBreak: "break-word",
                           }}
                         >
-                          {formatCompactNumber(c.total_pot)}
+                          {formatFtk(c.total_pot)}
                         </Text>
                       </div>
 
@@ -336,7 +372,7 @@ export default function Contests() {
                   </Paper>
 
                   <SimpleGrid cols={2} spacing="sm">
-                    <InfoTile label="Entry Fee" value={formatCompactNumber(c.entry_fee)} />
+                    <InfoTile label="Entry Fee" value={formatFtk(c.entry_fee)} />
                     <InfoTile label="Max Entries" value={formatCompactNumber(c.max_entries)} />
                     <InfoTile label="Rake BPS" value={formatCompactNumber(c.rake_bps)} />
                     <InfoTile label="Contest ID" value={String(c.contest_id)} />
@@ -368,28 +404,48 @@ export default function Contests() {
                       </Button>
                     </Link>
 
-                    <Button
-                      fullWidth
-                      radius="xl"
-                      disabled
-                      variant="light"
-                      styles={{
-                        root: {
-                          fontWeight: 800,
-                          background: "rgba(255,255,255,0.06)",
-                          color: "white",
-                          border: "1px solid rgba(255,255,255,0.08)",
-                          opacity: 0.65,
-                          cursor: "not-allowed",
-                        },
-                      }}
-                    >
-                      {c.resolved
-                        ? "Contest Finished"
-                        : state.locked
-                        ? "Entries Closed"
-                        : "Enter Contest (Soon)"}
-                    </Button>
+                    {c.resolved || state.locked ? (
+                      <Button
+                        fullWidth
+                        radius="xl"
+                        disabled
+                        variant="light"
+                        styles={{
+                          root: {
+                            fontWeight: 800,
+                            background: "rgba(255,255,255,0.06)",
+                            color: "white",
+                            border: "1px solid rgba(255,255,255,0.08)",
+                            opacity: 0.65,
+                            cursor: "not-allowed",
+                          },
+                        }}
+                      >
+                        {c.resolved ? "Contest Finished" : "Entries Closed"}
+                      </Button>
+                    ) : (
+                      <Link
+                        to={`/contests/${c.contest_id}`}
+                        style={{ textDecoration: "none", width: "100%" }}
+                      >
+                        <Button
+                          fullWidth
+                          radius="xl"
+                          variant="light"
+                          styles={{
+                            root: {
+                              fontWeight: 800,
+                              background:
+                                "linear-gradient(135deg, rgba(22,163,74,0.25), rgba(37,99,235,0.18))",
+                              color: "white",
+                              border: "1px solid rgba(255,255,255,0.12)",
+                            },
+                          }}
+                        >
+                          Enter Contest
+                        </Button>
+                      </Link>
+                    )}
                   </Group>
                 </Stack>
               </Card>

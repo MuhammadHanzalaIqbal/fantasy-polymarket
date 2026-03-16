@@ -19,8 +19,9 @@ import Home from "./pages/Home";
 import Players from "./pages/Players";
 import PlayerMarket from "./pages/PlayerMarket";
 import Contests from "./pages/Contests";
-import ContestLeaderboard from "./pages/ContestLeaderboard";
+import ContestDetail from "./pages/ContestDetail";
 import Portfolio from "./pages/Portfolio";
+import Admin from "./pages/Admin";
 import { useWallet } from "./context/WalletContext";
 
 const navItems = [
@@ -28,6 +29,7 @@ const navItems = [
   { to: "/players", label: "Markets", icon: "📈" },
   { to: "/contests", label: "Contests", icon: "🏆" },
   { to: "/portfolio", label: "Portfolio", icon: "👤" },
+  { to: "/admin", label: "Admin", icon: "🛡️" },
 ];
 
 export default function App() {
@@ -281,8 +283,9 @@ export default function App() {
             <Route path="/players" element={<Players />} />
             <Route path="/players/:playerId" element={<PlayerMarket />} />
             <Route path="/contests" element={<Contests />} />
-            <Route path="/contests/:contestId" element={<ContestLeaderboard />} />
+            <Route path="/contests/:contestId" element={<ContestDetail />} />
             <Route path="/portfolio" element={<Portfolio />} />
+            <Route path="/admin" element={<Admin />} />
           </Routes>
         </Box>
       </AppShell.Main>

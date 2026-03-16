@@ -1,6 +1,10 @@
 """Contest read and operations routes."""
 
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
+
+logger = logging.getLogger(__name__)
 
 from backend.app.api.deps import get_blockchain_client, require_demo_admin
 from backend.app.api.errors import raise_http_from_chain_error
@@ -77,6 +81,7 @@ def list_contests(
             contests.append(parsed)
         return contests
     except Exception as error:
+        logger.exception("Contest list lookup failed: %s", error)
         raise_http_from_chain_error(error, operation="contest list lookup")
 
 

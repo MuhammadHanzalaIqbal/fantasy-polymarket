@@ -15,6 +15,7 @@ import {
 import { api } from "../services/api";
 import type { PortfolioResponse } from "../services/api";
 import { useWallet } from "../context/WalletContext";
+import { formatFtk, formatPlayerId, formatShares } from "../utils/format";
 
 export default function Portfolio() {
   const { address, connect } = useWallet();
@@ -124,7 +125,7 @@ export default function Portfolio() {
           <Stack gap="md" miw={220}>
             <MiniStat label="Wallet State" value={address ? "Connected" : "Offline"} icon="👛" />
             <MiniStat label="Positions" value={String(totalPositions)} icon="📦" />
-            <MiniStat label="FTK Ready" value={data ? String(data.ftk_balance) : "--"} icon="🪙" />
+            <MiniStat label="FTK Ready" value={data ? formatFtk(data.ftk_balance) : "--"} icon="🪙" />
           </Stack>
         </Group>
       </Paper>
@@ -217,7 +218,7 @@ export default function Portfolio() {
             />
             <StatCard
               title="FTK Balance"
-              value={String(data.ftk_balance)}
+              value={formatFtk(data.ftk_balance)}
               icon="🪙"
             />
             <StatCard
@@ -257,7 +258,7 @@ export default function Portfolio() {
                       FTK Balance
                     </Text>
                     <Text c="white" fw={950} size="xl" mt={4}>
-                      {data.ftk_balance}
+                      {formatFtk(data.ftk_balance)}
                     </Text>
                   </div>
 
@@ -309,7 +310,7 @@ export default function Portfolio() {
                             Player Market
                           </Text>
                           <Text c="white" fw={950} size="lg">
-                            Player {pid}
+                            Player {formatPlayerId(pid)}
                           </Text>
                         </div>
 
@@ -322,7 +323,7 @@ export default function Portfolio() {
                         Shares Held
                       </Text>
                       <Text c="white" fw={950} size="xl" mt={4}>
-                        {amt}
+                        {formatShares(amt)}
                       </Text>
                     </Paper>
                   ))}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
-import { formatCompactNumber } from "../utils/format";
+import { formatFtk, formatPlayerId, formatShares } from "../utils/format";
 import {
   Badge,
   Box,
@@ -16,11 +16,6 @@ import {
 } from "@mantine/core";
 import { api } from "../services/api";
 import type { PlayerPoolResponse } from "../services/api";
-
-function formatPlayerId(id: number | string) {
-  const s = String(id);
-  return s.endsWith("000000000000000000") ? s.slice(0, -18) : s;
-}
 
 export default function Players() {
   const [startId, setStartId] = useState(1);
@@ -250,7 +245,7 @@ export default function Players() {
                           wordBreak: "break-word",
                         }}
                       >
-                        {formatCompactNumber(p.share_price_wei)}
+                        {formatFtk(p.share_price_wei)}
                       </Text>
                     </div>
 
@@ -263,11 +258,11 @@ export default function Players() {
                 <SimpleGrid cols={2} spacing="sm">
                   <InfoTile
                     label="Total Shares"
-                    value={formatCompactNumber(p.total_shares)}
+                    value={formatShares(p.total_shares)}
                   />
                   <InfoTile
                     label="FTK Liquidity"
-                    value={formatCompactNumber(p.ftk_liquidity)}
+                    value={formatFtk(p.ftk_liquidity)}
                   />
                   <InfoTile label="Player ID" value={formatPlayerId(p.player_id)} />
                   <InfoTile
