@@ -202,6 +202,7 @@ export const api = {
   players: (start_id = 1, end_id = 20) =>
     getJSON<PlayerPoolResponse[]>(`/players?start_id=${start_id}&end_id=${end_id}`),
 
+  // IMPORTANT: backend expects query param name "amount"
   marketQuote: (player_id: number, side: QuoteSide, amount: number) =>
     getJSON<QuoteResponse>(`/market/${player_id}/quote?side=${side}&amount=${amount}`),
 

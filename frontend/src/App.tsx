@@ -11,6 +11,9 @@ import {
   ThemeIcon,
   Divider,
 } from "@mantine/core";
+// frontend/src/App.tsx
+import { useState } from "react";
+import { connectWallet } from "./services/wallet";
 
 import Home from "./pages/Home";
 import Players from "./pages/Players";
@@ -28,18 +31,26 @@ const navItems = [
 ];
 
 export default function App() {
-  const { address, connect } = useWallet();
+  const [wallet, setWallet] = useState<string | null>(null);
+  const [walletErr, setWalletErr] = useState<string | null>(null);
+  const [connecting, setConnecting] = useState(false);
 
   async function onConnectWallet() {
     try {
-      await connect();
-    } catch (e) {
-      console.error("Wallet connect failed:", e);
+      setConnecting(true);
+      setWalletErr(null);
+      const addr = await connectWallet();
+      setWallet(addr);
+    } catch (e: any) {
+      setWallet(null);
+      setWalletErr(e?.message ?? String(e));
+    } finally {
+      setConnecting(false);
     }
   }
 
-  const walletLabel = address
-    ? `${address.slice(0, 6)}…${address.slice(-4)}`
+  const walletLabel = wallet
+    ? `${wallet.slice(0, 6)}…${wallet.slice(-4)}`
     : "Connect Wallet";
 
   return (
