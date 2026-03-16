@@ -1,8 +1,10 @@
 """Pydantic request and response schemas for API endpoints."""
 
+from __future__ import annotations
+
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class HealthResponse(BaseModel):
@@ -54,6 +56,15 @@ class PortfolioResponse(BaseModel):
     player_shares: dict[int, int]
 
 
+class TransactionIntent(BaseModel):
+    """Unsigned transaction payload for wallet submission."""
+
+    to: str
+    data: str
+    value_wei: int = 0
+    chain_id: int
+
+
 class QuoteResponse(BaseModel):
     """Quote model for buy or sell simulations."""
 
@@ -71,6 +82,113 @@ class OracleSubmitRequest(BaseModel):
     timestamp: int = Field(..., ge=1)
     player_ids: list[int] = Field(..., min_length=1)
     scores: list[int] = Field(..., min_length=1)
+
+
+class TradeIntentRequest(BaseModel):
+    """Input model for a frontend wallet trade intent."""
+
+    wallet_address: str = Field(..., min_length=42, max_length=42)
+    side: Literal["buy", "sell"]
+    amount: int = Field(..., ge=1)
+    slippage_bps: int = Field(default=100, ge=0, le=5_000)
+
+
+class TradeIntentResponse(BaseModel):
+    """Response model for wallet-trade unsigned transaction payload."""
+
+    player_id: int
+    side: Literal["buy", "sell"]
+    amount_in: int
+    estimated_amount_out: int
+    min_amount_out: int
+    reference_price_wei: int
+    tx_intent: TransactionIntent
+    approval_token: str | None = None
+    approval_spender: str | None = None
+    required_allowance_wei: int | None = None
+    current_allowance_wei: int | None = None
+    approval_sufficient: bool | None = None
+
+
+class ContestEntryIntentRequest(BaseModel):
+    """Input model for building a contest entry wallet transaction."""
+
+    wallet_address: str = Field(..., min_length=42, max_length=42)
+    players: list[int] = Field(..., min_length=1, max_length=25)
+
+
+class ContestEntryIntentResponse(BaseModel):
+    """Response model for contest-entry transaction preparation."""
+
+    contest_id: int
+    wallet_address: str
+    entry_fee: int
+    players: list[int]
+    resolved_players: list[int]
+    tx_intent: TransactionIntent
+    approval_token: str | None = None
+    approval_spender: str | None = None
+    required_allowance_wei: int | None = None
+    current_allowance_wei: int | None = None
+    approval_sufficient: bool | None = None
+
+
+class AdminCreatePlayerRequest(BaseModel):
+    """Input model for creating and listing a new player."""
+
+    player_id: int = Field(..., ge=1)
+    token_name: str = Field(..., min_length=2, max_length=64)
+    token_symbol: str = Field(..., min_length=2, max_length=16)
+
+
+class AdminCreatePlayerResponse(BaseModel):
+    """Response model for admin player creation workflow."""
+
+    player_id: int
+    token_already_exists: bool
+    player_already_listed: bool
+    create_token_tx: TransactionResponse | None
+    add_market_tx: TransactionResponse | None
+
+
+class AdminCreateContestRequest(BaseModel):
+    """Input model for creating a new contest."""
+
+    entry_fee: int = Field(..., ge=0)
+    max_entries: int = Field(..., ge=1)
+    start_time: int = Field(..., ge=1)
+    lock_time: int = Field(..., ge=1)
+    prize_bps: list[int] = Field(..., min_length=1)
+
+    @model_validator(mode="after")
+    def validate_prize_distribution(self) -> AdminCreateContestRequest:
+        """Validates prize payout percentages and contest timing bounds."""
+        if any(value <= 0 for value in self.prize_bps):
+            raise ValueError("prize_bps values must be positive")
+        if sum(self.prize_bps) != 10_000:
+            raise ValueError("prize_bps must sum to 10000")
+        if self.lock_time >= self.start_time:
+            raise ValueError("lock_time must be less than start_time")
+        return self
+
+
+class ContestResultEntryResponse(BaseModel):
+    """Contest result row for leaderboard and payout view."""
+
+    rank: int
+    user: str
+    score: int
+    prize_wei: int
+
+
+class ContestResultsResponse(BaseModel):
+    """Contest results payload for a contest details page."""
+
+    contest_id: int
+    resolved: bool
+    total_pot: int
+    winners_count: int
+    entries: list[ContestResultEntryResponse]
 
 
 class TransactionResponse(BaseModel):
