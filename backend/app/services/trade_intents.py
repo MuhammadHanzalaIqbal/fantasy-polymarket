@@ -11,7 +11,9 @@ from backend.app.models.schemas import TradeIntentResponse, TransactionIntent
 from backend.app.services.quotes import estimate_quote
 
 PLAYER_ID_SCALE = 10**18
+TOKEN_DECIMALS = 10**18
 BPS_DENOMINATOR = 10_000
+
 ERC20_ALLOWANCE_ABI = [
     {
         "inputs": [
