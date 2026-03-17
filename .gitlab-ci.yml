@@ -8,10 +8,11 @@ pages:
     - cd frontend
     - npm ci
     - npm run build
-    # GitLab Pages expects artifacts in 'public' directory
+    # GitLab Pages expects 'public' at repo root; frontend/public exists for static assets
+    - rm -rf public
     - mv dist public
-    # SPA routing: copy index.html to 404.html so unknown routes serve the app
     - cp public/index.html public/404.html
+    - mv public ..
   artifacts:
     paths:
       - public
