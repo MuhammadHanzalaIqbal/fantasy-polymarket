@@ -1,0 +1,19 @@
+# GitLab Pages deployment for Vite React frontend
+# Docs: https://docs.gitlab.com/ee/user/project/pages/
+image: node:22
+
+pages:
+  stage: deploy
+  script:
+    - cd frontend
+    - npm ci
+    - npm run build
+    # GitLab Pages expects artifacts in 'public' directory
+    - mv dist public
+    # SPA routing: copy index.html to 404.html so unknown routes serve the app
+    - cp public/index.html public/404.html
+  artifacts:
+    paths:
+      - public
+  only:
+    - main
