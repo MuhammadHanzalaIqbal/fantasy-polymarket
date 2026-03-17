@@ -22,7 +22,6 @@ import Contests from "./pages/Contests";
 import ContestDetail from "./pages/ContestDetail";
 import Portfolio from "./pages/Portfolio";
 import Admin from "./pages/Admin";
-import { useWallet } from "./context/WalletContext";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: "🏟️" },
@@ -135,6 +134,8 @@ export default function App() {
 
             <Button
               onClick={onConnectWallet}
+              disabled={connecting}
+              title={walletErr ?? undefined}
               styles={{
                 root: {
                   borderRadius: 16,
@@ -146,7 +147,7 @@ export default function App() {
                 },
               }}
             >
-              {walletLabel}
+              {connecting ? "Connecting…" : walletLabel}
             </Button>
           </Group>
         </Group>
