@@ -1,5 +1,6 @@
 # GitLab Pages deployment for Vite React frontend
 # Docs: https://docs.gitlab.com/ee/user/project/pages/
+# Set VITE_API_BASE in Settings > CI/CD > Variables to point to your deployed backend
 image: node:22
 
 pages:

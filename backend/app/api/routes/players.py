@@ -3,11 +3,14 @@
 from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
 
 from backend.app.api.deps import get_blockchain_client
 from backend.app.blockchain.client import BlockchainClient
 from backend.app.config import get_settings
+from backend.app.db.session import get_db_session
 from backend.app.models.schemas import PlayerPoolResponse, QuoteResponse
+from backend.app.services.player_profiles import get_player_avatar_url
 from backend.app.services.quotes import estimate_quote
 
 router = APIRouter(prefix="/players", tags=["players"])
@@ -69,6 +72,7 @@ def list_players(
     start_id: int = Query(default=1, ge=1),
     end_id: int = Query(default=20, ge=1),
     blockchain_client: BlockchainClient = Depends(get_blockchain_client),
+    db_session: Session = Depends(get_db_session),
 ) -> list[PlayerPoolResponse]:
     """Returns listed players from player market pools in an ID range."""
 
@@ -96,6 +100,10 @@ def list_players(
                 total_shares=total_shares,
                 ftk_liquidity=ftk_liquidity,
                 share_price_wei=share_price,
+                avatar_url=get_player_avatar_url(
+                    db_session=db_session,
+                    player_id=player_id,
+                ),
             )
         )
 

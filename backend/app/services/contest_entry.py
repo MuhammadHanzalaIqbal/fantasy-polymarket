@@ -5,11 +5,17 @@ from __future__ import annotations
 import time
 
 from fastapi import HTTPException, status
+from sqlalchemy.orm import Session
 from web3 import Web3
 from web3.contract.contract import Contract
 
 from backend.app.blockchain.contracts import encode_contract_call
-from backend.app.models.schemas import ContestEntryIntentResponse, TransactionIntent
+from backend.app.models.schemas import (
+    ContestEntryIntentRequest,
+    ContestEntryIntentResponse,
+    TransactionIntent,
+)
+from backend.app.services.team_service import resolve_team_players
 
 PLAYER_ID_SCALE = 10**18
 ERC20_BALANCE_OF_ABI = [
@@ -258,4 +264,27 @@ def build_contest_entry_intent(
         required_allowance_wei=entry_fee,
         current_allowance_wei=current_allowance,
         approval_sufficient=current_allowance >= entry_fee,
+    )
+
+
+def resolve_entry_players(
+    db_session: Session,
+    request: ContestEntryIntentRequest,
+) -> list[int]:
+    """Resolves entry player IDs from request players or stored team.
+
+    Args:
+        db_session: Active database session.
+        request: Contest entry request payload.
+
+    Returns:
+        Player IDs to use for on-chain contest entry.
+    """
+    if request.players:
+        return request.players
+    assert request.team_id is not None
+    return resolve_team_players(
+        db_session=db_session,
+        team_id=request.team_id,
+        wallet_address=request.wallet_address,
     )

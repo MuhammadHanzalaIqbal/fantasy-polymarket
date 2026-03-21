@@ -1,5 +1,6 @@
 """Admin operation services for demo API endpoints."""
 
+from sqlalchemy.orm import Session
 from web3.contract.contract import Contract
 
 from backend.app.blockchain.client import BlockchainClient, TxResult
@@ -10,6 +11,7 @@ from backend.app.models.schemas import (
     TransactionResponse,
 )
 from backend.app.services.contest_ops import is_contest_resolvable
+from backend.app.services.player_profiles import upsert_player_avatar_url
 
 
 def _to_transaction_response(result: TxResult) -> TransactionResponse:
@@ -33,6 +35,7 @@ def create_player_and_market_listing(
     share_manager_contract: Contract,
     market_contract: Contract,
     request: AdminCreatePlayerRequest,
+    db_session: Session,
 ) -> AdminCreatePlayerResponse:
     """Creates player token and lists player in market.
 
@@ -70,6 +73,12 @@ def create_player_and_market_listing(
             args=(request.player_id,),
         )
         add_market_response = _to_transaction_response(add_market_result)
+
+    upsert_player_avatar_url(
+        db_session=db_session,
+        player_id=request.player_id,
+        avatar_url=request.avatar_url,
+    )
 
     return AdminCreatePlayerResponse(
         player_id=request.player_id,

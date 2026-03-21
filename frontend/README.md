@@ -1,73 +1,58 @@
-# React + TypeScript + Vite
+# Fantasy Polymarket Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend for the Fantasy Polymarket MVP. It connects to the backend API for:
 
-Currently, two official plugins are available:
+- player market browsing and quotes,
+- contest browsing and leaderboard,
+- team management (`/teams`) for team-based contest entry,
+- admin operations (create player/contest, resolve contest).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Key Phase 1 Changes
 
-## React Compiler
+- Contest entry uses saved teams (`team_id`) from backend `/teams`.
+- New team management page: `/teams`.
+- Admin player form supports optional `avatar_url`.
+- Players list displays avatar when available.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Development
 
-## Expanding the ESLint configuration
+From `frontend/`:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Default dev URL: `http://localhost:5173`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Set API base with:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+VITE_API_BASE=http://127.0.0.1:8001 npm run dev
 ```
+
+## Build
+
+```bash
+npm run build
+```
+
+## Tests (Vitest)
+
+```bash
+npm run test
+```
+
+Test setup lives in `src/test/` and uses Testing Library + Mantine wrapper helpers.
+
+## Docker-based workflow
+
+If local Node tooling is unavailable, run checks inside container:
+
+```bash
+docker run --rm -v "$PWD:/app" -w /app node:22-alpine sh -lc "npm install && npm run test && npm run build"
+```
+
+## Important limitation
+
+Frontend enforces team-based flow, but protocol-level enforcement still depends on contracts. Direct on-chain calls can bypass backend team validation in Phase 1.

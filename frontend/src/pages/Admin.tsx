@@ -24,6 +24,7 @@ export default function Admin() {
   const [playerId, setPlayerId] = useState(1);
   const [tokenName, setTokenName] = useState("");
   const [tokenSymbol, setTokenSymbol] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
 
   const [entryFee, setEntryFee] = useState(0);
   const [maxEntries, setMaxEntries] = useState(10);
@@ -49,6 +50,7 @@ export default function Admin() {
           player_id: humanToPlayerId(playerId),
           token_name: tokenName,
           token_symbol: tokenSymbol,
+          avatar_url: avatarUrl.trim() || undefined,
         },
         apiKey
       );
@@ -216,6 +218,14 @@ export default function Admin() {
               placeholder="e.g. P1"
               styles={inputStyles}
             />
+            <TextInput
+              label="Avatar URL (optional)"
+              value={avatarUrl}
+              onChange={(e) => setAvatarUrl(e.currentTarget.value)}
+              placeholder="https://cdn.example.com/player-1.png"
+              description="Use http/https URL. Saved as off-chain player metadata."
+              styles={inputStyles}
+            />
             <Button
               onClick={createPlayer}
               loading={loading === "player"}
@@ -243,7 +253,7 @@ export default function Admin() {
             <NumberInput
               label="Entry fee (FTK)"
               value={entryFee}
-              onChange={(v) => setEntryFee(Number(v) ?? 0)}
+              onChange={(v) => setEntryFee(Number(v) || 0)}
               min={0}
               step={0.1}
               decimalScale={2}

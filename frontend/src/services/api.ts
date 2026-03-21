@@ -64,6 +64,7 @@ export type PlayerPoolResponse = {
   total_shares: number;
   ftk_liquidity: number;
   share_price_wei: number | null;
+  avatar_url?: string | null;
 };
 
 export type QuoteSide = "buy" | "sell";
@@ -130,7 +131,8 @@ export type TradeIntentResponse = {
 
 export type ContestEntryIntentRequest = {
   wallet_address: string;
-  players: number[];
+  players?: number[];
+  team_id?: number;
 };
 
 export type ContestEntryIntentResponse = {
@@ -139,12 +141,35 @@ export type ContestEntryIntentResponse = {
   entry_fee: number;
   players: number[];
   resolved_players: number[];
+  team_id?: number | null;
   tx_intent: TransactionIntent;
   approval_token?: string | null;
   approval_spender?: string | null;
   required_allowance_wei?: number | null;
   current_allowance_wei?: number | null;
   approval_sufficient?: boolean | null;
+};
+
+export type TeamCreateMember = {
+  slot_index: number;
+  player_id: number;
+  role_label: string;
+  player_info?: Record<string, string> | null;
+};
+
+export type TeamCreateRequest = {
+  wallet_address: string;
+  name: string;
+  members: TeamCreateMember[];
+};
+
+export type TeamResponse = {
+  team_id: number;
+  owner_wallet: string;
+  name: string;
+  members: TeamCreateMember[];
+  created_at: string;
+  updated_at: string;
 };
 
 export type ContestResultEntryResponse = {
@@ -172,6 +197,7 @@ export type AdminCreatePlayerRequest = {
   player_id: number;
   token_name: string;
   token_symbol: string;
+  avatar_url?: string;
 };
 
 export type AdminCreatePlayerResponse = {
@@ -228,6 +254,17 @@ export const api = {
 
   mePortfolio: (wallet: string) =>
     getJSON<PortfolioResponse>(`/me/portfolio?wallet=${encodeURIComponent(wallet)}`),
+
+  createTeam: (body: TeamCreateRequest) =>
+    postJSON<TeamResponse>("/teams", body),
+
+  listTeams: (wallet: string) =>
+    getJSON<TeamResponse[]>(`/teams?wallet_address=${encodeURIComponent(wallet)}`),
+
+  getTeam: (team_id: number, wallet: string) =>
+    getJSON<TeamResponse>(
+      `/teams/${team_id}?wallet_address=${encodeURIComponent(wallet)}`
+    ),
 
   adminCreatePlayer: (body: AdminCreatePlayerRequest, apiKey: string) =>
     postJSON<AdminCreatePlayerResponse>(

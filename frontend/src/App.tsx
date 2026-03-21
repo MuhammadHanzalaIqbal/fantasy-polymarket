@@ -22,11 +22,13 @@ import Contests from "./pages/Contests";
 import ContestDetail from "./pages/ContestDetail";
 import Portfolio from "./pages/Portfolio";
 import Admin from "./pages/Admin";
+import Teams from "./pages/Teams";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: "🏟️" },
   { to: "/players", label: "Markets", icon: "📈" },
   { to: "/contests", label: "Contests", icon: "🏆" },
+  { to: "/teams", label: "Teams", icon: "👥" },
   { to: "/portfolio", label: "Portfolio", icon: "👤" },
   { to: "/admin", label: "Admin", icon: "🛡️" },
 ];
@@ -42,9 +44,9 @@ export default function App() {
       setWalletErr(null);
       const addr = await connectWallet();
       setWallet(addr);
-    } catch (e: any) {
+    } catch (e: unknown) {
       setWallet(null);
-      setWalletErr(e?.message ?? String(e));
+      setWalletErr(e instanceof Error ? e.message : String(e));
     } finally {
       setConnecting(false);
     }
@@ -285,6 +287,7 @@ export default function App() {
             <Route path="/players/:playerId" element={<PlayerMarket />} />
             <Route path="/contests" element={<Contests />} />
             <Route path="/contests/:contestId" element={<ContestDetail />} />
+            <Route path="/teams" element={<Teams />} />
             <Route path="/portfolio" element={<Portfolio />} />
             <Route path="/admin" element={<Admin />} />
           </Routes>

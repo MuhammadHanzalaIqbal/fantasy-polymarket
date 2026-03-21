@@ -3,13 +3,13 @@
 import logging
 
 from fastapi import APIRouter, Depends, HTTPException, status
-
-logger = logging.getLogger(__name__)
+from sqlalchemy.orm import Session
 
 from backend.app.api.deps import get_blockchain_client, require_demo_admin
 from backend.app.api.errors import raise_http_from_chain_error
 from backend.app.blockchain.client import BlockchainClient
 from backend.app.config import get_settings
+from backend.app.db.session import get_db_session
 from backend.app.models.schemas import (
     ContestEntryIntentRequest,
     ContestEntryIntentResponse,
@@ -19,8 +19,13 @@ from backend.app.models.schemas import (
     TransactionResponse,
 )
 from backend.app.services.admin_ops import resolve_contest as resolve_contest_tx
-from backend.app.services.contest_entry import build_contest_entry_intent
+from backend.app.services.contest_entry import (
+    build_contest_entry_intent,
+    resolve_entry_players,
+)
 from backend.app.services.contest_results import build_contest_results
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/contests", tags=["contests"])
 
@@ -158,6 +163,7 @@ def create_entry_intent(
     contest_id: int,
     request: ContestEntryIntentRequest,
     blockchain_client: BlockchainClient = Depends(get_blockchain_client),
+    db_session: Session = Depends(get_db_session),
 ) -> ContestEntryIntentResponse:
     """Builds unsigned transaction payload for contest entry."""
     settings = get_settings()
@@ -179,14 +185,20 @@ def create_entry_intent(
         share_manager = blockchain_client.contract(
             "PlayerShareManager", settings.player_share_manager_address
         )
-        return build_contest_entry_intent(
+        selected_players = resolve_entry_players(
+            db_session=db_session,
+            request=request,
+        )
+        intent = build_contest_entry_intent(
             contest_manager_contract=contest_manager,
             share_manager_contract=share_manager,
             wallet_address=request.wallet_address,
             contest_id=contest_id,
-            players=request.players,
+            players=selected_players,
             chain_id=settings.chain_id,
         )
+        intent.team_id = request.team_id
+        return intent
     except Exception as error:
         raise_http_from_chain_error(
             error,

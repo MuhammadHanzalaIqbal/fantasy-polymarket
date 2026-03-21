@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
 import { formatFtk, formatPlayerId, formatShares } from "../utils/format";
 import {
+  Avatar,
   Badge,
   Box,
   Button,
@@ -12,7 +13,6 @@ import {
   Stack,
   Text,
   TextInput,
-  ThemeIcon,
 } from "@mantine/core";
 import { api } from "../services/api";
 import type { PlayerPoolResponse } from "../services/api";
@@ -30,8 +30,8 @@ export default function Players() {
     try {
       const data = await api.players(startId, endId);
       setPlayers(data);
-    } catch (e: any) {
-      setErr(e?.message ?? String(e));
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : String(e));
     } finally {
       setLoading(false);
     }
@@ -197,14 +197,20 @@ export default function Players() {
               <Stack gap="md">
                 <Group justify="space-between" align="flex-start">
                   <Group gap="md" wrap="nowrap">
-                    <ThemeIcon
+                    <Avatar
                       radius="xl"
                       size={52}
-                      variant="gradient"
-                      gradient={{ from: "green", to: "blue", deg: 135 }}
+                      src={p.avatar_url ?? undefined}
+                      alt={`Player ${formatPlayerId(p.player_id)} avatar`}
+                      styles={{
+                        root: {
+                          background:
+                            "linear-gradient(135deg, rgba(22,163,74,0.9), rgba(37,99,235,0.9))",
+                        },
+                      }}
                     >
                       ⚽
-                    </ThemeIcon>
+                    </Avatar>
 
                     <div>
                       <Text c="white" fw={950} size="lg">
