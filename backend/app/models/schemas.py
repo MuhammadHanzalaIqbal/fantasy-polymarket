@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Literal
+from urllib.parse import urlparse
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class HealthResponse(BaseModel):
@@ -25,6 +27,7 @@ class PlayerPoolResponse(BaseModel):
     total_shares: int
     ftk_liquidity: int
     share_price_wei: int | None = None
+    avatar_url: str | None = None
 
 
 class ContestResponse(BaseModel):
@@ -114,7 +117,17 @@ class ContestEntryIntentRequest(BaseModel):
     """Input model for building a contest entry wallet transaction."""
 
     wallet_address: str = Field(..., min_length=42, max_length=42)
-    players: list[int] = Field(..., min_length=1, max_length=25)
+    players: list[int] | None = Field(default=None, min_length=1, max_length=25)
+    team_id: int | None = Field(default=None, ge=1)
+
+    @model_validator(mode="after")
+    def validate_players_or_team(self) -> ContestEntryIntentRequest:
+        """Ensures exactly one roster source is provided."""
+        has_players = bool(self.players)
+        has_team_id = self.team_id is not None
+        if has_players == has_team_id:
+            raise ValueError("Provide exactly one of players or team_id")
+        return self
 
 
 class ContestEntryIntentResponse(BaseModel):
@@ -125,6 +138,7 @@ class ContestEntryIntentResponse(BaseModel):
     entry_fee: int
     players: list[int]
     resolved_players: list[int]
+    team_id: int | None = None
     tx_intent: TransactionIntent
     approval_token: str | None = None
     approval_spender: str | None = None
@@ -133,12 +147,63 @@ class ContestEntryIntentResponse(BaseModel):
     approval_sufficient: bool | None = None
 
 
+class TeamCreateMember(BaseModel):
+    """Input model for a single team member definition."""
+
+    slot_index: int = Field(..., ge=0, le=4)
+    player_id: int = Field(..., ge=1)
+    role_label: str = Field(..., min_length=1, max_length=64)
+    player_info: dict[str, str] | None = None
+
+
+class TeamCreateRequest(BaseModel):
+    """Input model for creating a persistent fantasy team."""
+
+    wallet_address: str = Field(..., min_length=42, max_length=42)
+    name: str = Field(..., min_length=1, max_length=128)
+    members: list[TeamCreateMember] = Field(..., min_length=5, max_length=5)
+
+
+class TeamMemberResponse(BaseModel):
+    """Response model for a team member."""
+
+    slot_index: int
+    player_id: int
+    role_label: str
+    player_info: dict[str, str] | None = None
+
+
+class TeamResponse(BaseModel):
+    """Response model for persisted team."""
+
+    team_id: int
+    owner_wallet: str
+    name: str
+    members: list[TeamMemberResponse]
+    created_at: datetime
+    updated_at: datetime
+
+
 class AdminCreatePlayerRequest(BaseModel):
     """Input model for creating and listing a new player."""
 
     player_id: int = Field(..., ge=1)
     token_name: str = Field(..., min_length=2, max_length=64)
     token_symbol: str = Field(..., min_length=2, max_length=16)
+    avatar_url: str | None = Field(default=None, min_length=1, max_length=512)
+
+    @field_validator("avatar_url")
+    @classmethod
+    def validate_avatar_url(cls, value: str | None) -> str | None:
+        """Validates avatar URL scheme for MVP metadata ingestion."""
+        if value is None:
+            return None
+        parsed = urlparse(value)
+        if parsed.scheme not in {"http", "https"}:
+            raise ValueError("avatar_url must use http or https scheme")
+        if not parsed.netloc:
+            raise ValueError("avatar_url must include host")
+        return value
 
 
 class AdminCreatePlayerResponse(BaseModel):

@@ -1,11 +1,13 @@
 """Admin routes for contest and player management."""
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
 from backend.app.api.deps import get_blockchain_client, require_demo_admin
 from backend.app.api.errors import raise_http_from_chain_error
 from backend.app.blockchain.client import BlockchainClient
 from backend.app.config import get_settings
+from backend.app.db.session import get_db_session
 from backend.app.models.schemas import (
     AdminCreateContestRequest,
     AdminCreatePlayerRequest,
@@ -29,6 +31,7 @@ router = APIRouter(
 def admin_create_player(
     request: AdminCreatePlayerRequest,
     blockchain_client: BlockchainClient = Depends(get_blockchain_client),
+    db_session: Session = Depends(get_db_session),
 ) -> AdminCreatePlayerResponse:
     """Creates a new player share token and lists it in market."""
     settings = get_settings()
@@ -55,6 +58,7 @@ def admin_create_player(
             share_manager_contract=share_manager,
             market_contract=market,
             request=request,
+            db_session=db_session,
         )
     except Exception as error:
         raise_http_from_chain_error(

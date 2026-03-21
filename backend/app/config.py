@@ -13,10 +13,19 @@ class Settings(BaseSettings):
     app_version: str = "0.1.0"
     debug: bool = False
 
+    cors_origins: str = Field(
+        default="http://localhost:5173,http://127.0.0.1:5173,https://gurevichpe.gitlab.io",
+        description="Comma-separated allowed CORS origins",
+    )
+
     rpc_url: str = Field(default="http://127.0.0.1:8545")
     chain_id: int = 11155111
     private_key: str = ""
     request_timeout_seconds: int = 30
+    database_url: str = Field(
+        default="sqlite+pysqlite:///./fantasy_backend.db",
+        description="SQLAlchemy database URL for backend persistence",
+    )
 
     fantasy_token_address: str = ""
     player_market_address: str = ""

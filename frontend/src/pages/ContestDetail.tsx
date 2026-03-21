@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   Alert,
@@ -6,20 +12,17 @@ import {
   Box,
   Button,
   Card,
-  Checkbox,
   Group,
   Paper,
+  Select,
   Stack,
   Text,
 } from "@mantine/core";
 import { api } from "../services/api";
-import type {
-  LeaderboardEntryResponse,
-  PortfolioResponse,
-} from "../services/api";
+import type { LeaderboardEntryResponse, TeamResponse } from "../services/api";
 import { useWallet } from "../context/WalletContext";
 import { sendIntentTransaction, waitForReceipt } from "../services/tx";
-import { formatPlayerId, formatShares } from "../utils/format";
+import { formatPlayerId } from "../utils/format";
 
 const panel: CSSProperties = {
   background: "rgba(255,255,255,0.03)",
@@ -40,29 +43,44 @@ const paperStyle = {
   overflow: "hidden" as const,
 };
 
+const selectStyles = {
+  label: {
+    color: "rgba(255,255,255,0.68)",
+    marginBottom: 6,
+    fontWeight: 700,
+  },
+  input: {
+    borderRadius: 12,
+    border: "1px solid rgba(255,255,255,0.08)",
+    background: "rgba(255,255,255,0.04)",
+    color: "white",
+  },
+  dropdown: {
+    background: "#0b1628",
+    border: "1px solid rgba(255,255,255,0.08)",
+  },
+};
+
 export default function ContestDetail() {
   const { contestId } = useParams();
   const cid = useMemo(() => Number(contestId), [contestId]);
   const { address, connect } = useWallet();
 
   const [rows, setRows] = useState<LeaderboardEntryResponse[]>([]);
-  const [portfolio, setPortfolio] = useState<PortfolioResponse | null>(null);
-  const [portfolioLoading, setPortfolioLoading] = useState(false);
-  const [selectedPlayers, setSelectedPlayers] = useState<number[]>([]);
+  const [teams, setTeams] = useState<TeamResponse[]>([]);
+  const [teamsLoading, setTeamsLoading] = useState(false);
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
 
   const txBusy = status !== null && !status.includes("confirmed");
+  const selectedTeam = useMemo(
+    () =>
+      teams.find((team) => String(team.team_id) === String(selectedTeamId)) ?? null,
+    [selectedTeamId, teams]
+  );
 
-  const ownedPlayers = useMemo(() => {
-    if (!portfolio?.player_shares) return [];
-    return Object.entries(portfolio.player_shares)
-      .filter(([, shares]) => shares > 0)
-      .map(([id, shares]) => ({ playerId: Number(id), shares }))
-      .sort((a, b) => a.playerId - b.playerId);
-  }, [portfolio]);
-
-  async function load() {
+  const loadLeaderboard = useCallback(async () => {
     try {
       setErr(null);
       const data = await api.leaderboard(cid);
@@ -70,47 +88,43 @@ export default function ContestDetail() {
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : String(e));
     }
-  }
+  }, [cid]);
 
-  async function loadPortfolio(wallet: string) {
-    setPortfolioLoading(true);
+  const loadTeams = useCallback(async (wallet: string) => {
+    setTeamsLoading(true);
     setErr(null);
     try {
-      let p: PortfolioResponse;
-      try {
-        p = await api.mePortfolio(wallet);
-      } catch {
-        p = await api.portfolio(wallet);
+      const response = await api.listTeams(wallet);
+      setTeams(response);
+      if (response.length > 0) {
+        setSelectedTeamId((previous) =>
+          previous && response.some((team) => String(team.team_id) === previous)
+            ? previous
+            : String(response[0].team_id)
+        );
+      } else {
+        setSelectedTeamId(null);
       }
-      setPortfolio(p);
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : String(e));
-      setPortfolio(null);
+      setTeams([]);
     } finally {
-      setPortfolioLoading(false);
+      setTeamsLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
-    load();
-  }, [cid]);
+    loadLeaderboard();
+  }, [loadLeaderboard]);
 
   useEffect(() => {
     if (address) {
-      loadPortfolio(address);
+      loadTeams(address);
     } else {
-      setPortfolio(null);
-      setSelectedPlayers([]);
+      setTeams([]);
+      setSelectedTeamId(null);
     }
-  }, [address]);
-
-  function togglePlayer(playerId: number) {
-    setSelectedPlayers((prev) =>
-      prev.includes(playerId)
-        ? prev.filter((p) => p !== playerId)
-        : [...prev, playerId]
-    );
-  }
+  }, [address, loadTeams]);
 
   async function enterContest() {
     try {
@@ -119,18 +133,22 @@ export default function ContestDetail() {
       let wallet = address;
       if (!wallet) {
         await connect();
-        wallet = (window as unknown as { ethereum?: { selectedAddress?: string } }).ethereum?.selectedAddress ?? null;
+        wallet = (
+          window as unknown as {
+            ethereum?: { selectedAddress?: string };
+          }
+        ).ethereum?.selectedAddress ?? null;
       }
       if (!wallet) throw new Error("Connect wallet first.");
 
-      if (selectedPlayers.length === 0) {
-        throw new Error("Select at least one player from your portfolio.");
+      if (!selectedTeamId) {
+        throw new Error("Select a team before entering the contest.");
       }
 
       setStatus("Building entry intent...");
       const intent = await api.contestEntryIntent(cid, {
         wallet_address: wallet,
-        players: selectedPlayers,
+        team_id: Number(selectedTeamId),
       });
 
       setStatus("Waiting for wallet confirmation...");
@@ -140,7 +158,7 @@ export default function ContestDetail() {
       await waitForReceipt(hash);
 
       setStatus("Contest entry confirmed");
-      await load();
+      await loadLeaderboard();
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : String(e));
       setStatus(null);
@@ -182,7 +200,7 @@ export default function ContestDetail() {
           Contest #{cid}
         </Text>
         <Text mt="md" size="md" c="rgba(255,255,255,0.68)" maw={700}>
-          Enter your player lineup and join the pool.
+          Select one of your saved teams and join the pool.
         </Text>
         <Button
           component={Link}
@@ -210,74 +228,98 @@ export default function ContestDetail() {
               Enter contest
             </Text>
             <Text size="sm" c="rgba(255,255,255,0.55)">
-              Select players from your portfolio to build your lineup.
+              Contest entry is team-based. Choose one of your saved teams.
             </Text>
           </div>
 
           {!address ? (
             <Paper radius={18} p="lg" style={innerPanel}>
               <Text c="rgba(255,255,255,0.7)">
-                Connect your wallet to see and select players you own.
+                Connect your wallet to load and select your saved teams.
               </Text>
             </Paper>
-          ) : portfolioLoading ? (
+          ) : teamsLoading ? (
             <Paper radius={18} p="lg" style={innerPanel}>
-              <Text c="rgba(255,255,255,0.7)">Loading your portfolio...</Text>
+              <Text c="rgba(255,255,255,0.7)">Loading your teams...</Text>
             </Paper>
-          ) : ownedPlayers.length === 0 ? (
+          ) : teams.length === 0 ? (
             <Paper radius={18} p="lg" style={innerPanel}>
               <Text c="rgba(255,255,255,0.7)" mb="sm">
-                You have no player shares. Trade to acquire shares first.
+                You do not have any saved teams yet.
               </Text>
-              <Button
-                component={Link}
-                to="/players"
-                variant="light"
-                size="sm"
-                styles={{
-                  root: {
-                    fontWeight: 700,
-                    color: "rgba(255,255,255,0.9)",
-                  },
-                }}
-              >
-                Go to markets
-              </Button>
+              <Group gap="sm">
+                <Button
+                  component={Link}
+                  to="/teams"
+                  variant="light"
+                  size="sm"
+                  styles={{
+                    root: {
+                      fontWeight: 700,
+                      color: "rgba(255,255,255,0.9)",
+                    },
+                  }}
+                >
+                  Create team
+                </Button>
+                <Button
+                  variant="subtle"
+                  size="sm"
+                  onClick={() => address && loadTeams(address)}
+                  styles={{
+                    root: {
+                      fontWeight: 700,
+                      color: "rgba(255,255,255,0.8)",
+                    },
+                  }}
+                >
+                  Refresh
+                </Button>
+              </Group>
             </Paper>
           ) : (
             <Stack gap="sm">
               <Text size="sm" fw={700} c="rgba(255,255,255,0.68)">
-                Your players (select lineup)
+                Team selection
               </Text>
               <Paper radius={18} p="md" style={innerPanel}>
-                <Stack gap="xs">
-                  {ownedPlayers.map(({ playerId, shares }) => (
-                    <Checkbox
-                      key={playerId}
-                      label={
-                        <Group gap="xs">
-                          <Text c="white" fw={700}>
-                            Player {formatPlayerId(playerId)}
-                          </Text>
-                          <Text size="sm" c="rgba(255,255,255,0.55)">
-                            ({formatShares(shares)} shares)
-                          </Text>
-                        </Group>
-                      }
-                      checked={selectedPlayers.includes(playerId)}
-                      onChange={() => togglePlayer(playerId)}
-                      disabled={txBusy}
-                      styles={{
-                        label: {
-                          color: "white",
-                          cursor: txBusy ? "not-allowed" : "pointer",
-                        },
-                        body: {
-                          alignItems: "center",
-                        },
-                      }}
-                    />
-                  ))}
+                <Stack gap="md">
+                  <Select
+                    label="Saved team"
+                    data={teams.map((team) => ({
+                      value: String(team.team_id),
+                      label: `#${team.team_id} - ${team.name}`,
+                    }))}
+                    value={selectedTeamId}
+                    onChange={setSelectedTeamId}
+                    disabled={txBusy}
+                    styles={selectStyles}
+                  />
+                  {selectedTeam && (
+                    <Stack gap="xs">
+                      <Text c="white" fw={800}>
+                        Selected team roster
+                      </Text>
+                      {selectedTeam.members
+                        .sort((a, b) => a.slot_index - b.slot_index)
+                        .map((member) => (
+                          <Group
+                            key={`${selectedTeam.team_id}-${member.slot_index}`}
+                            gap="xs"
+                          >
+                            <Badge radius="xl" color="blue" variant="light">
+                              Slot {member.slot_index + 1}
+                            </Badge>
+                            <Text c="white" fw={700}>
+                              Player {formatPlayerId(member.player_id)}
+                            </Text>
+                            <Text size="sm" c="rgba(255,255,255,0.6)">
+                              {member.role_label}
+                            </Text>
+                          </Group>
+                        ))}
+                    </Stack>
+                  )}
                 </Stack>
               </Paper>
             </Stack>
@@ -286,12 +328,7 @@ export default function ContestDetail() {
           <Button
             onClick={enterContest}
             loading={txBusy}
-            disabled={
-              txBusy ||
-              !address ||
-              ownedPlayers.length === 0 ||
-              selectedPlayers.length === 0
-            }
+            disabled={txBusy || !address || teams.length === 0 || !selectedTeamId}
             radius="xl"
             styles={{
               root: {
