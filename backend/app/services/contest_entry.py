@@ -15,9 +15,9 @@ from backend.app.models.schemas import (
     ContestEntryIntentResponse,
     TransactionIntent,
 )
+from backend.app.services.player_id_resolution import resolve_share_manager_player_id
 from backend.app.services.team_service import resolve_team_players
 
-PLAYER_ID_SCALE = 10**18
 ERC20_BALANCE_OF_ABI = [
     {
         "inputs": [{"internalType": "address", "name": "account", "type": "address"}],
@@ -125,34 +125,6 @@ def _validate_roster_holdings(
             )
 
 
-def _resolve_share_player_id(share_manager_contract: Contract, player_id: int) -> int:
-    """Resolves player ID in share manager using raw or scaled indexing.
-
-    Args:
-        share_manager_contract: Bound PlayerShareManager contract.
-        player_id: Requested player identifier.
-
-    Returns:
-        Existing player ID used by share manager.
-
-    Raises:
-        HTTPException: If player token is missing in both indexing schemes.
-    """
-    candidate_ids = [player_id]
-    if player_id < PLAYER_ID_SCALE:
-        candidate_ids.append(player_id * PLAYER_ID_SCALE)
-    for candidate_id in candidate_ids:
-        token_address = str(
-            share_manager_contract.functions.playerToken(candidate_id).call()
-        )
-        if token_address != "0x0000000000000000000000000000000000000000":
-            return candidate_id
-    raise HTTPException(
-        status_code=status.HTTP_400_BAD_REQUEST,
-        detail=f"player {player_id} is not listed in share manager",
-    )
-
-
 def _normalize_roster_player_ids(
     share_manager_contract: Contract,
     players: list[int],
@@ -169,7 +141,7 @@ def _normalize_roster_player_ids(
     resolved_players: list[int] = []
     for player_id in players:
         resolved_players.append(
-            _resolve_share_player_id(share_manager_contract, player_id)
+            resolve_share_manager_player_id(share_manager_contract, player_id)
         )
     return resolved_players
 

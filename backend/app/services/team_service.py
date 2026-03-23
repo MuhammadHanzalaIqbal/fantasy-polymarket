@@ -15,6 +15,7 @@ from backend.app.models.schemas import (
     TeamMemberResponse,
     TeamResponse,
 )
+from backend.app.services.player_id_resolution import resolve_share_manager_player_id
 
 
 def _validate_member_slots(members: list[TeamCreateMember]) -> None:
@@ -51,6 +52,10 @@ def _ensure_players_listed(
 ) -> None:
     """Ensures each team member maps to an existing share token.
 
+    Uses the same raw vs 1e18-scaled ID resolution as contest entry and
+    market routes so squads accept API player IDs regardless of on-chain
+    indexing scheme.
+
     Args:
         share_manager_contract: Bound PlayerShareManager contract.
         members: Requested team members.
@@ -59,14 +64,7 @@ def _ensure_players_listed(
         HTTPException: If any player is missing from share manager.
     """
     for member in members:
-        token_address = str(
-            share_manager_contract.functions.playerToken(member.player_id).call()
-        )
-        if token_address == "0x0000000000000000000000000000000000000000":
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"player {member.player_id} is not listed in share manager",
-            )
+        resolve_share_manager_player_id(share_manager_contract, member.player_id)
 
 
 def _to_team_response(team: Team) -> TeamResponse:

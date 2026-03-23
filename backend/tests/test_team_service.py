@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from backend.app.db.models import Base
 from backend.app.models.schemas import TeamCreateMember, TeamCreateRequest
+from backend.app.services.player_id_resolution import PLAYER_ID_SCALE
 from backend.app.services.team_service import (
     create_team,
     get_team_for_wallet,
@@ -99,6 +100,22 @@ def _valid_request(wallet: str) -> TeamCreateRequest:
             ),
         ],
     )
+
+
+def test_create_team_accepts_scaled_only_share_manager_ids(session: Session) -> None:
+    """Accepts raw player IDs when tokens exist only at 1e18-scaled keys."""
+    scaled = {i * PLAYER_ID_SCALE for i in range(1, 6)}
+    share_manager = _FakeShareManagerContract(listed_ids=scaled)
+    request = _valid_request("0x0000000000000000000000000000000000000001")
+
+    created = create_team(
+        db_session=session,
+        share_manager_contract=share_manager,
+        request=request,
+    )
+
+    assert len(created.members) == 5
+    assert created.members[0].player_id == 1
 
 
 def test_create_team_persists_members_and_metadata(session: Session) -> None:
