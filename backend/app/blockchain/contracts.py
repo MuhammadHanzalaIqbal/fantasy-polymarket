@@ -54,3 +54,21 @@ def get_contract(
     checksum_address = Web3.to_checksum_address(contract_address)
     return web3_client.eth.contract(address=checksum_address, abi=abi)
 
+
+def encode_contract_call(
+    contract: Contract,
+    function_name: str,
+    args: list[Any],
+) -> str:
+    """Encodes contract function call data for unsigned tx intents.
+
+    Args:
+        contract: Bound contract instance.
+        function_name: Contract function name to encode.
+        args: Positional function arguments.
+
+    Returns:
+        ABI-encoded calldata payload.
+    """
+    return contract.encode_abi(function_name, args=args)
+
