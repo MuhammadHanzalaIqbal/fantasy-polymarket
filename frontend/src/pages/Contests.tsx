@@ -72,7 +72,7 @@ export default function Contests() {
       const bLocked = !b.resolved && now >= Number(b.lock_time);
       if (aLocked && !bLocked) return -1;
       if (!aLocked && bLocked) return 1;
-      return 0;
+      return Number(b.contest_id) - Number(a.contest_id);
     });
   }, [contests]);
 

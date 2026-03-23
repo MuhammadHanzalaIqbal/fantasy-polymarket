@@ -84,7 +84,7 @@ def list_contests(
             parsed = _parse_contest_tuple(tuple(contest))
             parsed.contest_id = contest_id
             contests.append(parsed)
-        return contests
+        return sorted(contests, key=lambda contest: contest.contest_id, reverse=True)
     except Exception as error:
         logger.exception("Contest list lookup failed: %s", error)
         raise_http_from_chain_error(error, operation="contest list lookup")
