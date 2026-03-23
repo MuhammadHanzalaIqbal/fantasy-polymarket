@@ -5,6 +5,8 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+logger = logging.getLogger(__name__)
+
 from backend.app.api.deps import get_blockchain_client, require_demo_admin
 from backend.app.api.errors import raise_http_from_chain_error
 from backend.app.blockchain.client import BlockchainClient
@@ -24,8 +26,6 @@ from backend.app.services.contest_entry import (
     resolve_entry_players,
 )
 from backend.app.services.contest_results import build_contest_results
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/contests", tags=["contests"])
 

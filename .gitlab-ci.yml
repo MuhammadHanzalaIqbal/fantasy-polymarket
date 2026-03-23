@@ -1,0 +1,20 @@
+# GitLab Pages deployment for Vite React frontend
+# Docs: https://docs.gitlab.com/ee/user/project/pages/
+image: node:22
+
+pages:
+  stage: deploy
+  script:
+    - cd frontend
+    - npm ci
+    - npm run build
+    # GitLab Pages expects 'public' at repo root; frontend/public exists for static assets
+    - rm -rf public
+    - mv dist public
+    - cp public/index.html public/404.html
+    - mv public ..
+  artifacts:
+    paths:
+      - public
+  only:
+    - main

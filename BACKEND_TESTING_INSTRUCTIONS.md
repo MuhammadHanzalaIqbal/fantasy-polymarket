@@ -197,9 +197,9 @@ curl -X POST "http://127.0.0.1:8001/oracle/submit-matchweek" \
   -H "Content-Type: application/json" \
   -H "X-API-Key: $API_KEY" \
   -d "{
-    \"matchweek\": 1,
+    \"matchweek\": 14,
     \"timestamp\": $TS,
-    \"player_ids\": [1000000000000000000,2000000000000000000,3000000000000000000],
+    \"player_ids\": [1000000000000000000,2000000000000000000,8000000000000000000],
     \"scores\": [10,8,6]
   }"
 ```
@@ -212,15 +212,86 @@ Important:
 ## 5.2 Resolve contest
 
 ```bash
-curl -X POST "http://127.0.0.1:8001/contests/1/resolve" \
+curl -X POST "http://127.0.0.1:8001/contests/9/resolve" \
+  -H "X-API-Key: $API_KEY"
+```
+
+Alternative admin namespace alias:
+
+```bash
+curl -X POST "http://127.0.0.1:8001/admin/contests/9/resolve" \
   -H "X-API-Key: $API_KEY"
 ```
 
 Then verify:
 
 ```bash
-curl http://127.0.0.1:8001/contests/1/leaderboard
+curl http://127.0.0.1:8001/contests/9/leaderboard
 curl http://127.0.0.1:8001/portfolio/<YOUR_WALLET_ADDRESS>
+```
+
+```json
+
+{
+  "rank":1,
+  "user":"0x7252CFA44890b1f000c937a19c52cf03Db65fca0",
+  "score":1
+}
+
+```
+
+## 5.3 Build user trade intent (wallet-direct)
+
+```bash
+curl -X POST "http://127.0.0.1:8001/market/1/trade-intent" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "wallet_address": "<YOUR_WALLET_ADDRESS>",
+    "side": "buy",
+    "amount": 1000000000000000000,
+    "slippage_bps": 100
+  }'
+```
+
+Response includes `tx_intent` (`to`, `data`, `value_wei`, `chain_id`) for wallet signing.
+
+## 5.4 Build contest entry intent (wallet-direct)
+
+```bash
+curl -X POST "http://127.0.0.1:8001/contests/9/entry-intent" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "wallet_address": "<YOUR_WALLET_ADDRESS>",
+    "players": [1000000000000000000, 2000000000000000000]
+  }'
+```
+
+Use returned `tx_intent` in frontend wallet flow to submit `enterContest`.
+
+## 5.5 Admin create player and contest
+
+```bash
+curl -X POST "http://127.0.0.1:8001/admin/players" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_KEY" \
+  -d '{
+    "player_id": 11,
+    "token_name": "Player Eleven Share",
+    "token_symbol": "P11"
+  }'
+```
+
+```bash
+curl -X POST "http://127.0.0.1:8001/admin/contests" \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: $API_KEY" \
+  -d '{
+    "entry_fee": 1000000000000000000,
+    "max_entries": 100,
+    "start_time": 2000000600,
+    "lock_time": 2000000000,
+    "prize_bps": [7000, 3000]
+  }'
 ```
 
 ---
@@ -235,8 +306,8 @@ curl http://127.0.0.1:8001/portfolio/<YOUR_WALLET_ADDRESS>
 6. Owner creates new contest with future lock/start
 7. User approves FTK to contest manager and enters contest
 8. Submit oracle matchweek via backend `POST /oracle/submit-matchweek`
-9. Resolve contest via backend `POST /contests/{id}/resolve`
-10. Validate leaderboard and portfolio
+9. Resolve contest via backend `POST /admin/contests/{id}/resolve`
+10. Validate leaderboard, results, and portfolio (`/contests/{id}/results`, `/me/portfolio`)
 
 ---
 
@@ -315,9 +386,10 @@ Fix:
 ## 8) Notes for MVP Expectations
 
 - Backend does not yet expose DepositRouter/WithdrawalRouter HTTP endpoints.
-- Some setup actions are still expected through admin wallet tools (Etherscan/Remix).
+- User writes remain wallet-direct via tx-intent routes (`trade-intent`, `entry-intent`).
+- Admin setup and orchestration can now be executed through backend admin routes.
 - For complete product flow demo, combine:
   - backend endpoints,
-  - direct admin contract calls,
+  - backend admin API calls,
   - user wallet transactions.
 
