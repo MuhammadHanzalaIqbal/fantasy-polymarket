@@ -12,6 +12,7 @@ import {
   Stack,
   Text,
   ThemeIcon,
+  BackgroundImage,
 } from "@mantine/core";
 import { api } from "../services/api";
 import type { HealthResponse } from "../services/api";
@@ -31,7 +32,7 @@ export default function Home() {
         p="xl"
         style={{
           background:
-            "linear-gradient(135deg, rgba(37,99,235,0.28), rgba(22,163,74,0.20), rgba(8,18,34,0.96))",
+            "linear-gradient(rgba(7,10,14,0.40), rgba(7,10,14,0.78)), url('/images/csgo-hero.jpg') center/cover no-repeat",
           border: "1px solid rgba(255,255,255,0.08)",
           boxShadow: "0 24px 80px rgba(0,0,0,0.25)",
           overflow: "hidden",
@@ -46,20 +47,8 @@ export default function Home() {
             width: 260,
             height: 260,
             borderRadius: "50%",
-            background: "rgba(34,197,94,0.10)",
+            background: "rgba(255,138,61,0.10)",
             filter: "blur(10px)",
-          }}
-        />
-        <Box
-          style={{
-            position: "absolute",
-            right: 80,
-            bottom: -90,
-            width: 280,
-            height: 280,
-            borderRadius: "50%",
-            background: "rgba(37,99,235,0.14)",
-            filter: "blur(12px)",
           }}
         />
 
@@ -67,14 +56,14 @@ export default function Home() {
           <Grid.Col span={{ base: 12, md: 8 }}>
             <Stack gap="md">
               <Group gap="xs">
-                <Badge color="green" variant="light" radius="xl">
-                  LIVE MVP
+                <Badge color="orange" variant="light" radius="xl">
+                  LIVE OPERATION
                 </Badge>
                 <Badge color="blue" variant="light" radius="xl">
-                  ON-CHAIN FANTASY
+                  COUNTER-STRIKE
                 </Badge>
                 <Badge color="yellow" variant="light" radius="xl">
-                  SPORTS MARKET
+                  MAJOR READY
                 </Badge>
               </Group>
 
@@ -90,20 +79,20 @@ export default function Home() {
                 >
                   Build your squad.
                   <br />
-                  Trade player shares.
+                  Scout the market.
                   <br />
-                  Win contests.
+                  Win the Major.
                 </Text>
 
                 <Text
                   mt="md"
                   size="md"
-                  c="rgba(255,255,255,0.70)"
+                  c="rgba(255,255,255,0.76)"
                   maw={640}
                 >
-                  Fantasy Sportsbook turns sports players into tradable on-chain
-                  markets. Buy player exposure, manage your FTK, and enter
-                  contests with a real fantasy trading workflow.
+                  Counter-Strike League transforms your competitive roster flow
+                  into a tactical on-chain experience. Track player value, build
+                  your five-stack, and enter tournaments from one Home.
                 </Text>
               </div>
 
@@ -117,13 +106,13 @@ export default function Home() {
                     root: {
                       fontWeight: 900,
                       background:
-                        "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
-                      color: "white",
-                      boxShadow: "0 10px 28px rgba(22,163,74,0.30)",
+                        "linear-gradient(135deg, #ff8a3d 0%, #ffb347 100%)",
+                      color: "#101418",
+                      boxShadow: "0 10px 28px rgba(255,138,61,0.28)",
                     },
                   }}
                 >
-                  Enter Live Contests
+                  View Live Tournaments
                 </Button>
 
                 <Button
@@ -141,7 +130,7 @@ export default function Home() {
                     },
                   }}
                 >
-                  Explore Markets
+                  Open Players
                 </Button>
               </Group>
             </Stack>
@@ -150,22 +139,22 @@ export default function Home() {
           <Grid.Col span={{ base: 12, md: 4 }}>
             <Stack gap="md">
               <HeroStat
-                label="Prize Pools"
-                value="Mega Contests"
-                sub="Compete in leaderboard-based fantasy contests"
+                label="Majors"
+                value="Tournament Queue"
+                sub="Track active brackets, buy-ins, and current event status"
                 icon="🏆"
               />
               <HeroStat
-                label="Trade Engine"
-                value="Player Markets"
-                sub="Buy and sell player share exposure using FTK"
-                icon="📈"
+                label="Market Intel"
+                value="Player Value Board"
+                sub="Scan liquidity, pricing, and player market movement"
+                icon="💹"
               />
               <HeroStat
-                label="Portfolio"
-                value="On-chain Holdings"
-                sub="Track wallet balances, shares, and contest activity"
-                icon="💼"
+                label="Roster Control"
+                value="Five-Stack Builder"
+                sub="Create and save tactical lineups for tournament entry"
+                icon="🛡️"
               />
             </Stack>
           </Grid.Col>
@@ -197,7 +186,7 @@ export default function Home() {
           }}
         >
           <Text c="rgba(255,255,255,0.75)" fw={700}>
-            Loading fantasy dashboard...
+            Loading Home...
           </Text>
         </Paper>
       ) : (
@@ -235,13 +224,13 @@ export default function Home() {
                 <Group justify="space-between" mb="lg">
                   <div>
                     <Text c="white" fw={900} size="xl">
-                      Featured Fantasy Arena
+                      Featured Operation
                     </Text>
                     <Text size="sm" c="rgba(255,255,255,0.55)">
-                      Your core game loop: trade, enter contests, track results.
+                      Your tactical loop: scout, assemble, enter, climb.
                     </Text>
                   </div>
-                  <Badge color="green" variant="light" radius="xl">
+                  <Badge color="orange" variant="light" radius="xl">
                     HOT
                   </Badge>
                 </Group>
@@ -249,18 +238,18 @@ export default function Home() {
                 <SimpleGrid cols={{ base: 1, md: 3 }} spacing="md">
                   <FeatureCard
                     icon="🎯"
-                    title="Trade Player Markets"
-                    text="Open player pages, preview quotes, and execute buy/sell flows from your connected wallet."
+                    title="Scout Player Market"
+                    text="Review current player value, inspect market depth, and pick your next roster target."
                   />
                   <FeatureCard
                     icon="🏆"
-                    title="Join Contests"
-                    text="Enter fantasy contests using your selected player set and compete on live scoreboards."
+                    title="Join Tournaments"
+                    text="Enter live events with your saved five-stack and fight up the standings."
                   />
                   <FeatureCard
                     icon="📊"
-                    title="Track Portfolio"
-                    text="Monitor FTK balance, player shares, and portfolio performance from your connected wallet."
+                    title="Track Inventory"
+                    text="Monitor FTK balance, player exposure, and transaction activity from your wallet."
                   />
                 </SimpleGrid>
               </Card>
@@ -269,7 +258,7 @@ export default function Home() {
             <Grid.Col span={{ base: 12, lg: 4 }}>
               <Card radius={24} p="xl" style={panel}>
                 <Text c="white" fw={900} size="xl" mb="md">
-                  Matchday Status
+                  Server Status
                 </Text>
 
                 <Stack gap="sm">
@@ -284,12 +273,12 @@ export default function Home() {
                     tone={data.chain_connected ? "green" : "red"}
                   />
                   <StatusRow
-                    label="Trading Engine"
+                    label="Market Engine"
                     value="Ready"
                     tone="blue"
                   />
                   <StatusRow
-                    label="Contest Engine"
+                    label="Tournament Queue"
                     value="Available"
                     tone="green"
                   />
@@ -302,18 +291,18 @@ export default function Home() {
             <Grid.Col span={{ base: 12, md: 6 }}>
               <Card radius={24} p="xl" style={panel}>
                 <Text c="white" fw={900} size="xl" mb="xs">
-                  Daily Objectives
+                  Mission Checklist
                 </Text>
                 <Text size="sm" c="rgba(255,255,255,0.55)" mb="lg">
-                  Suggested flow for testing the app end-to-end.
+                  Suggested test flow for the full CS league experience.
                 </Text>
 
                 <Stack gap="sm">
                   <ChecklistItem text="Connect your wallet" done />
-                  <ChecklistItem text="Check FTK balance in portfolio" />
-                  <ChecklistItem text="Approve FTK spending when prompted" />
-                  <ChecklistItem text="Buy player shares from market page" />
-                  <ChecklistItem text="Enter a contest and watch leaderboard" />
+                  <ChecklistItem text="Check FTK balance in inventory" />
+                  <ChecklistItem text="Scan player prices on market page" />
+                  <ChecklistItem text="Build your five-stack in squads" />
+                  <ChecklistItem text="Enter a tournament and review standings" />
                 </Stack>
               </Card>
             </Grid.Col>
@@ -324,14 +313,14 @@ export default function Home() {
                   League Pulse
                 </Text>
                 <Text size="sm" c="rgba(255,255,255,0.55)" mb="lg">
-                  Fantasy Sportsbook MVP is online and ready for testing.
+                  Counter-Strike League is online and ready for tactical testing.
                 </Text>
 
                 <SimpleGrid cols={2} spacing="md">
                   <PulseMiniCard label="Market State" value="Live" />
                   <PulseMiniCard label="Wallet Flow" value="Enabled" />
-                  <PulseMiniCard label="Contest Mode" value="Ready" />
-                  <PulseMiniCard label="Admin Tools" value="Available" />
+                  <PulseMiniCard label="Tournament Mode" value="Ready" />
+                  <PulseMiniCard label="Admin" value="Available" />
                 </SimpleGrid>
               </Card>
             </Grid.Col>
@@ -367,7 +356,7 @@ function HeroStat({
           radius="xl"
           size={44}
           variant="gradient"
-          gradient={{ from: "green", to: "blue", deg: 135 }}
+          gradient={{ from: "orange", to: "yellow", deg: 135 }}
         >
           <span>{icon}</span>
         </ThemeIcon>

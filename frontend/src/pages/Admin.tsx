@@ -1,8 +1,10 @@
 import { useState } from "react";
 import {
   Alert,
+  Badge,
   Box,
   Button,
+  Group,
   NumberInput,
   Paper,
   Stack,
@@ -66,23 +68,21 @@ export default function Admin() {
     const startTime = parseMoscowToUnix(startTimeStr);
     const lockTime = parseMoscowToUnix(lockTimeStr);
     if (startTime === null) {
-      setErr("Invalid start time. Use DD.MM.YYYY HH:mm (e.g. 17.03.2025 18:00)");
+      setErr("Invalid start time. Use DD.MM.YYYY HH:mm");
       return;
     }
     if (lockTime === null) {
-      setErr("Invalid lock time. Use DD.MM.YYYY HH:mm (e.g. 17.03.2025 14:30)");
+      setErr("Invalid lock time. Use DD.MM.YYYY HH:mm");
       return;
     }
     if (lockTime >= startTime) {
-      setErr(
-        "Lock time must be before start time. Lock = when entries close, Start = when contest begins."
-      );
+      setErr("Registration lock must be before tournament start.");
       return;
     }
     const prizeBpsNums = prizeBps.split(",").map((x) => Number(x.trim()));
     const prizeSum = prizeBpsNums.reduce((a, b) => a + b, 0);
     if (prizeSum !== 10000) {
-      setErr(`Prize BPS must sum to 10000 (e.g. 7000,2000,1000). Current sum: ${prizeSum}`);
+      setErr(`Prize BPS must sum to 10000. Current sum: ${prizeSum}`);
       return;
     }
     try {
@@ -99,7 +99,7 @@ export default function Admin() {
         },
         apiKey
       );
-      setMsg(`Contest created: ${res.tx_hash}`);
+      setMsg(`Tournament created: ${res.tx_hash}`);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       setErr(msg);
@@ -115,7 +115,7 @@ export default function Admin() {
       setMsg(null);
       setLoading("resolve");
       const res = await api.adminResolveContest(resolveContestId, apiKey);
-      setMsg(`Contest resolved: ${res.tx_hash}`);
+      setMsg(`Tournament resolved: ${res.tx_hash}`);
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : String(e));
     } finally {
@@ -125,10 +125,11 @@ export default function Admin() {
 
   const paperStyle = {
     background:
-      "linear-gradient(135deg, rgba(37,99,235,0.24), rgba(22,163,74,0.18), rgba(8,18,34,0.95))",
+      "linear-gradient(rgba(7,10,14,0.42), rgba(7,10,14,0.78)), url('/images/admin.jpg') center/cover no-repeat",
     border: "1px solid rgba(255,255,255,0.08)",
     position: "relative" as const,
     overflow: "hidden" as const,
+    boxShadow: "0 24px 80px rgba(0,0,0,0.30)",
   };
 
   const inputStyles = {
@@ -148,6 +149,21 @@ export default function Admin() {
     },
   };
 
+  const sectionStyle = {
+    background: "rgba(0,0,0,0.24)",
+    border: "1px solid rgba(255,255,255,0.06)",
+    backdropFilter: "blur(8px)",
+  };
+
+  const actionBtn = {
+    root: {
+      borderRadius: 16,
+      fontWeight: 900,
+      background: "linear-gradient(135deg, #ff8a3d 0%, #ffb347 100%)",
+      color: "#101418",
+    },
+  };
+
   return (
     <Stack gap="xl">
       <Paper radius={28} p="xl" style={paperStyle}>
@@ -159,27 +175,41 @@ export default function Admin() {
             width: 220,
             height: 220,
             borderRadius: "50%",
-            background: "rgba(34,197,94,0.10)",
+            background: "rgba(255,138,61,0.10)",
             filter: "blur(12px)",
           }}
         />
+
         <Stack gap="xs" mb="md">
+          <Group gap="xs">
+            <Badge color="orange" variant="light" radius="xl">
+              CONTROL ROOM
+            </Badge>
+            <Badge color="blue" variant="light" radius="xl">
+              ADMIN
+            </Badge>
+            <Badge color="yellow" variant="light" radius="xl">
+              LIVE CONFIG
+            </Badge>
+          </Group>
+
           <Text
             c="white"
             fw={950}
             style={{
-              fontSize: "clamp(24px, 4vw, 36px)",
+              fontSize: "clamp(24px, 4vw, 40px)",
               letterSpacing: -0.5,
             }}
           >
-            Admin
+            Control Room
           </Text>
-          <Text size="sm" c="rgba(255,255,255,0.65)">
-            Create players, contests, and resolve contests. Requires API key.
+          <Text size="sm" c="rgba(255,255,255,0.70)">
+            Create player markets, open tournaments, and resolve completed events.
+            Requires API key access.
           </Text>
         </Stack>
 
-        <Paper p="md" radius={16} mb="md" style={{ background: "rgba(0,0,0,0.2)" }}>
+        <Paper p="md" radius={16} mb="md" style={sectionStyle}>
           <Text size="sm" fw={700} c="white" mb="xs">
             Admin API key
           </Text>
@@ -191,13 +221,13 @@ export default function Admin() {
           />
         </Paper>
 
-        <Paper p="md" radius={16} mb="md" style={{ background: "rgba(0,0,0,0.2)" }}>
+        <Paper p="md" radius={16} mb="md" style={sectionStyle}>
           <Text size="sm" fw={700} c="white" mb="xs">
-            Create player
+            Create player market
           </Text>
           <Stack gap="sm">
             <NumberInput
-              label="Player ID (e.g. 5 for player 5)"
+              label="Player ID"
               value={playerId}
               onChange={(v) => setPlayerId(Number(v) || 0)}
               min={1}
@@ -230,38 +260,30 @@ export default function Admin() {
               onClick={createPlayer}
               loading={loading === "player"}
               disabled={!apiKey.trim()}
-              styles={{
-                root: {
-                  borderRadius: 16,
-                  fontWeight: 900,
-                  background:
-                    "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
-                  color: "white",
-                },
-              }}
+              styles={actionBtn}
             >
               Create player
             </Button>
           </Stack>
         </Paper>
 
-        <Paper p="md" radius={16} mb="md" style={{ background: "rgba(0,0,0,0.2)" }}>
+        <Paper p="md" radius={16} mb="md" style={sectionStyle}>
           <Text size="sm" fw={700} c="white" mb="xs">
-            Create contest
+            Create tournament
           </Text>
           <Stack gap="sm">
             <NumberInput
-              label="Entry fee (FTK)"
+              label="Buy-In (FTK)"
               value={entryFee}
               onChange={(v) => setEntryFee(Number(v) || 0)}
               min={0}
               step={0.1}
               decimalScale={2}
-              description="Enter amount in FTK (e.g. 1 or 1.5)"
+              description="Enter amount in FTK"
               styles={inputStyles}
             />
             <NumberInput
-              label="Max entries"
+              label="Team slots"
               value={maxEntries}
               onChange={(v) => setMaxEntries(Number(v) || 0)}
               min={1}
@@ -269,11 +291,11 @@ export default function Admin() {
             />
             <Box>
               <TextInput
-                label="Lock time (when entries close, Moscow)"
+                label="Registration lock (Moscow)"
                 value={lockTimeStr}
                 onChange={(e) => setLockTimeStr(e.currentTarget.value)}
-                placeholder="DD.MM.YYYY HH:mm (earlier, e.g. 17.03.2025 14:30)"
-                description="Must be before start time"
+                placeholder="DD.MM.YYYY HH:mm"
+                description="Must be before tournament start"
                 styles={inputStyles}
               />
               <Button
@@ -295,11 +317,11 @@ export default function Admin() {
             </Box>
             <Box>
               <TextInput
-                label="Start time (when contest begins, Moscow)"
+                label="Tournament start (Moscow)"
                 value={startTimeStr}
                 onChange={(e) => setStartTimeStr(e.currentTarget.value)}
-                placeholder="DD.MM.YYYY HH:mm (later, e.g. 17.03.2025 18:00)"
-                description="Must be after lock time"
+                placeholder="DD.MM.YYYY HH:mm"
+                description="Must be after lock"
                 styles={inputStyles}
               />
               <Button
@@ -331,48 +353,41 @@ export default function Admin() {
                 }}
                 styles={{
                   root: {
-                    color: "rgba(34,197,94,0.9)",
+                    color: "rgba(255,138,61,0.95)",
                     fontWeight: 700,
+                    background: "rgba(255,255,255,0.08)",
                   },
                 }}
               >
-                Set both (lock=now, start=+1h)
+                Set both
               </Button>
             </Box>
             <TextInput
-              label="Prize BPS (comma-separated, must sum to 10000)"
+              label="Prize BPS"
               value={prizeBps}
               onChange={(e) => setPrizeBps(e.currentTarget.value)}
-              placeholder="7000,2000,1000 (70%, 20%, 10%)"
-              description="Example: 7000,2000,1000 = 70% / 20% / 10% for top 3"
+              placeholder="7000,2000,1000"
+              description="Must sum to 10000"
               styles={inputStyles}
             />
             <Button
               onClick={createContest}
               loading={loading === "contest"}
               disabled={!apiKey.trim()}
-              styles={{
-                root: {
-                  borderRadius: 16,
-                  fontWeight: 900,
-                  background:
-                    "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
-                  color: "white",
-                },
-              }}
+              styles={actionBtn}
             >
-              Create contest
+              Create tournament
             </Button>
           </Stack>
         </Paper>
 
-        <Paper p="md" radius={16} mb="md" style={{ background: "rgba(0,0,0,0.2)" }}>
+        <Paper p="md" radius={16} mb="md" style={sectionStyle}>
           <Text size="sm" fw={700} c="white" mb="xs">
-            Resolve contest
+            Resolve tournament
           </Text>
           <Stack gap="sm">
             <NumberInput
-              label="Contest ID"
+              label="Tournament ID"
               value={resolveContestId}
               onChange={(v) => setResolveContestId(Number(v) || 0)}
               min={1}
@@ -382,17 +397,9 @@ export default function Admin() {
               onClick={resolveContest}
               loading={loading === "resolve"}
               disabled={!apiKey.trim()}
-              styles={{
-                root: {
-                  borderRadius: 16,
-                  fontWeight: 900,
-                  background:
-                    "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
-                  color: "white",
-                },
-              }}
+              styles={actionBtn}
             >
-              Resolve contest
+              Resolve tournament
             </Button>
           </Stack>
         </Paper>

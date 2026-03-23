@@ -27,6 +27,7 @@ import { formatPlayerId } from "../utils/format";
 const panel: CSSProperties = {
   background: "rgba(255,255,255,0.03)",
   border: "1px solid rgba(255,255,255,0.08)",
+  backdropFilter: "blur(10px)",
 };
 
 const innerPanel: CSSProperties = {
@@ -66,7 +67,7 @@ export default function Teams() {
   const [teams, setTeams] = useState<TeamResponse[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(false);
   const [savingTeam, setSavingTeam] = useState(false);
-  const [teamName, setTeamName] = useState("Core Five");
+  const [teamName, setTeamName] = useState("Alpha Five");
   const [members, setMembers] = useState<MemberDraft[]>(initialMembers());
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -121,29 +122,25 @@ export default function Teams() {
   }
 
   function validateDraft(): string | null {
-    if (!teamName.trim()) {
-      return "Team name is required.";
-    }
-    if (members.length !== 5) {
-      return "Team must contain exactly 5 players.";
-    }
+    if (!teamName.trim()) return "Squad name is required.";
+    if (members.length !== 5) return "Squad must contain exactly 5 players.";
+
     const sortedSlots = [...members].map((m) => m.slot_index).sort();
     if (JSON.stringify(sortedSlots) !== JSON.stringify([0, 1, 2, 3, 4])) {
       return "Slots must include each index from 0 to 4 exactly once.";
     }
+
     const duplicatePlayers = members.some(
       (member, idx) =>
         members.findIndex((candidate) => candidate.player_id === member.player_id) !==
         idx
     );
-    if (duplicatePlayers) {
-      return "Player IDs must be unique.";
-    }
+    if (duplicatePlayers) return "Player IDs must be unique.";
     if (members.some((member) => member.player_id <= 0)) {
       return "Each player ID must be a positive integer.";
     }
     if (members.some((member) => !member.role_label.trim())) {
-      return "Each slot must include a role label.";
+      return "Each slot must include a role.";
     }
     return null;
   }
@@ -180,8 +177,8 @@ export default function Teams() {
         name: teamName.trim(),
         members: buildMembersPayload(members),
       });
-      setMsg(`Team created: #${created.team_id}`);
-      setTeamName("Core Five");
+      setMsg(`Squad created: #${created.team_id}`);
+      setTeamName("Alpha Five");
       setMembers(initialMembers());
       await loadTeams(wallet);
       setSelectedTeamId(created.team_id);
@@ -199,10 +196,11 @@ export default function Teams() {
         p="xl"
         style={{
           background:
-            "linear-gradient(135deg, rgba(37,99,235,0.22), rgba(22,163,74,0.14), rgba(8,18,34,0.96))",
+            "linear-gradient(rgba(7,10,14,0.42), rgba(7,10,14,0.78)), url('/images/csgo-dark.jpg') center/cover no-repeat",
           border: "1px solid rgba(255,255,255,0.08)",
           position: "relative",
           overflow: "hidden",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.30)",
         }}
       >
         <Box
@@ -213,7 +211,7 @@ export default function Teams() {
             width: 220,
             height: 220,
             borderRadius: "50%",
-            background: "rgba(37,99,235,0.16)",
+            background: "rgba(255,138,61,0.10)",
             filter: "blur(14px)",
           }}
         />
@@ -221,14 +219,14 @@ export default function Teams() {
         <Group justify="space-between" align="flex-start" gap="xl">
           <div>
             <Group gap="xs" mb="sm">
-              <Badge color="green" variant="light" radius="xl">
-                TEAM BUILDER
+              <Badge color="orange" variant="light" radius="xl">
+                SQUAD BUILDER
               </Badge>
               <Badge color="blue" variant="light" radius="xl">
-                5 SLOTS
+                FIVE STACK
               </Badge>
               <Badge color="yellow" variant="light" radius="xl">
-                PHASE 1
+                CS2 READY
               </Badge>
             </Group>
 
@@ -241,13 +239,13 @@ export default function Teams() {
                 letterSpacing: -1,
               }}
             >
-              Build your roster
+              Assemble your roster
               <br />
-              before contest entry.
+              for the next Major.
             </Text>
-            <Text mt="md" size="md" c="rgba(255,255,255,0.66)" maw={700}>
-              Create and store fixed five-player teams with role labels. Use these
-              saved teams for contest entry.
+            <Text mt="md" size="md" c="rgba(255,255,255,0.70)" maw={700}>
+              Build and save tactical five-player squads with roles like IGL,
+              Entry, AWPer, Lurker, and Support for tournament entry.
             </Text>
           </div>
         </Group>
@@ -260,7 +258,7 @@ export default function Teams() {
               Wallet required
             </Text>
             <Text c="rgba(255,255,255,0.65)">
-              Connect your wallet to create and view your teams.
+              Connect your wallet to create and manage your squads.
             </Text>
             <Button
               onClick={connect}
@@ -268,8 +266,9 @@ export default function Teams() {
               styles={{
                 root: {
                   fontWeight: 900,
-                  background: "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
-                  color: "white",
+                  background:
+                    "linear-gradient(135deg, #ff8a3d 0%, #ffb347 100%)",
+                  color: "#101418",
                   maxWidth: 220,
                 },
               }}
@@ -284,13 +283,13 @@ export default function Teams() {
         <Card radius={24} p="xl" style={panel}>
           <Stack gap="md">
             <Text c="white" fw={950} size="xl">
-              Create team
+              Create squad
             </Text>
             <TextInput
-              label="Team name"
+              label="Squad name"
               value={teamName}
               onChange={(event) => setTeamName(event.currentTarget.value)}
-              placeholder="Core Five"
+              placeholder="Alpha Five"
               styles={darkInputStyles}
             />
 
@@ -320,7 +319,7 @@ export default function Teams() {
                           event.currentTarget.value
                         )
                       }
-                      placeholder="AWP / IGL / Entry / Support"
+                      placeholder="IGL / Entry / AWPer / Support / Lurker"
                       styles={darkInputStyles}
                     />
                     <TextInput
@@ -349,12 +348,13 @@ export default function Teams() {
               styles={{
                 root: {
                   fontWeight: 900,
-                  background: "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
-                  color: "white",
+                  background:
+                    "linear-gradient(135deg, #ff8a3d 0%, #ffb347 100%)",
+                  color: "#101418",
                 },
               }}
             >
-              Save team
+              Save squad
             </Button>
           </Stack>
         </Card>
@@ -363,7 +363,7 @@ export default function Teams() {
           <Stack gap="md">
             <Group justify="space-between">
               <Text c="white" fw={950} size="xl">
-                My teams
+                My squads
               </Text>
               <Button
                 size="xs"
@@ -371,16 +371,23 @@ export default function Teams() {
                 onClick={() => address && loadTeams(address)}
                 loading={loadingTeams}
                 disabled={!address}
+                styles={{
+                  root: {
+                    background: "rgba(255,255,255,0.08)",
+                    color: "white",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                  },
+                }}
               >
                 Refresh
               </Button>
             </Group>
 
             {loadingTeams ? (
-              <Text c="rgba(255,255,255,0.65)">Loading teams...</Text>
+              <Text c="rgba(255,255,255,0.65)">Loading squads...</Text>
             ) : teams.length === 0 ? (
               <Text c="rgba(255,255,255,0.65)">
-                No teams yet. Create your first roster on the left.
+                No squads yet. Create your first five-stack on the left.
               </Text>
             ) : (
               <Stack gap="xs">
@@ -396,8 +403,9 @@ export default function Teams() {
                         color: "white",
                         background:
                           team.team_id === selectedTeamId
-                            ? "linear-gradient(135deg, #2563EB 0%, #16A34A 100%)"
+                            ? "linear-gradient(135deg, #ff8a3d 0%, #2563EB 100%)"
                             : "rgba(255,255,255,0.06)",
+                        border: "1px solid rgba(255,255,255,0.08)",
                       },
                     }}
                   >
@@ -411,7 +419,7 @@ export default function Teams() {
               <Paper radius={16} p="md" style={innerPanel}>
                 <Stack gap="xs">
                   <Text c="white" fw={900}>
-                    Team #{selectedTeam.team_id}: {selectedTeam.name}
+                    Squad #{selectedTeam.team_id}: {selectedTeam.name}
                   </Text>
                   {selectedTeam.members
                     .sort((a, b) => a.slot_index - b.slot_index)
@@ -460,6 +468,9 @@ const darkInputStyles = {
     color: "rgba(255,255,255,0.68)",
     marginBottom: 6,
     fontWeight: 700,
+  },
+  description: {
+    color: "rgba(255,255,255,0.48)",
   },
   input: {
     borderRadius: 16,

@@ -16,6 +16,19 @@ import {
 } from "@mantine/core";
 import { api } from "../services/api";
 import type { PlayerPoolResponse } from "../services/api";
+import { playersData } from "../data/players_data";
+
+function normalizePlayerId(playerId: number) {
+  return playerId >= 10 ** 18 ? Math.floor(playerId / 10 ** 18) : playerId;
+}
+
+type ManualPlayerMeta = {
+  name: string;
+  team?: string;
+  role?: string;
+  country?: string;
+  image?: string;
+};
 
 export default function Players() {
   const [startId, setStartId] = useState(1);
@@ -54,10 +67,11 @@ export default function Players() {
         p="xl"
         style={{
           background:
-            "linear-gradient(135deg, rgba(37,99,235,0.22), rgba(22,163,74,0.14), rgba(8,18,34,0.96))",
+            "linear-gradient(rgba(7,10,14,0.42), rgba(7,10,14,0.78)), url('/images/csgo-dark.jpg') center/cover no-repeat",
           border: "1px solid rgba(255,255,255,0.08)",
           position: "relative",
           overflow: "hidden",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.30)",
         }}
       >
         <Box
@@ -68,7 +82,7 @@ export default function Players() {
             width: 220,
             height: 220,
             borderRadius: "50%",
-            background: "rgba(37,99,235,0.16)",
+            background: "rgba(255,138,61,0.10)",
             filter: "blur(14px)",
           }}
         />
@@ -76,11 +90,11 @@ export default function Players() {
         <Group justify="space-between" align="flex-start" gap="xl">
           <div>
             <Group gap="xs" mb="sm">
-              <Badge color="green" variant="light" radius="xl">
-                LIVE MARKETS
+              <Badge color="orange" variant="light" radius="xl">
+                LIVE MARKET
               </Badge>
               <Badge color="blue" variant="light" radius="xl">
-                PLAYER SHARES
+                PLAYER VALUE
               </Badge>
               <Badge color="yellow" variant="light" radius="xl">
                 FTK TRADING
@@ -96,14 +110,14 @@ export default function Players() {
                 letterSpacing: -1,
               }}
             >
-              Trade player exposure
+              Scout roster value
               <br />
-              like a fantasy market.
+              across the transfer board.
             </Text>
 
-            <Text mt="md" size="md" c="rgba(255,255,255,0.66)" maw={720}>
-              Browse listed player pools, compare liquidity and pricing, then
-              jump into each market to execute your trade directly from your wallet.
+            <Text mt="md" size="md" c="rgba(255,255,255,0.70)" maw={720}>
+              Browse listed player markets, compare liquidity and pricing, then
+              open a market terminal to execute trades directly from your wallet.
             </Text>
           </div>
 
@@ -118,10 +132,10 @@ export default function Players() {
         <Group justify="space-between" align="flex-end" mb="lg">
           <div>
             <Text c="white" fw={950} size="xl">
-              Market Filters
+              Market scan
             </Text>
             <Text size="sm" c="rgba(255,255,255,0.55)">
-              Set the player id range to scan active pools from the market contract.
+              Set the player ID range to inspect active transfer markets.
             </Text>
           </div>
 
@@ -158,12 +172,13 @@ export default function Players() {
             styles={{
               root: {
                 fontWeight: 900,
-                background: "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
-                color: "white",
+                background:
+                  "linear-gradient(135deg, #ff8a3d 0%, #ffb347 100%)",
+                color: "#101418",
               },
             }}
           >
-            {loading ? "Loading..." : "Reload Market Board"}
+            {loading ? "Loading..." : "Reload Transfer Board"}
           </Button>
         </Group>
       </Card>
@@ -185,141 +200,151 @@ export default function Players() {
 
       <div>
         <Text c="white" fw={950} size="xl" mb={6}>
-          Player Market Board
+          Transfer Board
         </Text>
         <Text size="sm" c="rgba(255,255,255,0.55)" mb="lg">
-          Open a player market to quote, approve FTK, and execute trades.
+          Open a player terminal to inspect pricing, approve FTK, and execute trades.
         </Text>
 
         <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="lg">
-          {players.map((p) => (
-            <Card key={p.player_id} radius={24} p="xl" style={marketCard}>
-              <Stack gap="md">
-                <Group justify="space-between" align="flex-start">
-                  <Group gap="md" wrap="nowrap">
-                    <Avatar
-                      radius="xl"
-                      size={52}
-                      src={p.avatar_url ?? undefined}
-                      alt={`Player ${formatPlayerId(p.player_id)} avatar`}
-                      styles={{
-                        root: {
-                          background:
-                            "linear-gradient(135deg, rgba(22,163,74,0.9), rgba(37,99,235,0.9))",
-                        },
-                      }}
-                    >
-                      ⚽
-                    </Avatar>
+          {players.map((p) => {
+            const rawId = normalizePlayerId(p.player_id);
+            const meta = (playersData as Record<number, ManualPlayerMeta>)[rawId];
 
-                    <div>
-                      <Text c="white" fw={950} size="lg">
-                        Player #{formatPlayerId(p.player_id)}
-                      </Text>
-                      <Text size="sm" c="rgba(255,255,255,0.50)">
-                        Fantasy player market
-                      </Text>
-                    </div>
-                  </Group>
-
-                  <Badge
-                    radius="xl"
-                    color={p.exists ? "green" : "red"}
-                    variant="light"
-                  >
-                    {p.exists ? "LISTED" : "OFFLINE"}
-                  </Badge>
-                </Group>
-
-                <Paper radius={18} p="md" style={innerPanel}>
+            return (
+              <Card key={p.player_id} radius={24} p="xl" style={marketCard}>
+                <Stack gap="md">
                   <Group justify="space-between" align="flex-start">
-                    <div style={{ minWidth: 0, flex: 1 }}>
-                      <Text
-                        size="xs"
-                        tt="uppercase"
-                        fw={800}
-                        c="rgba(255,255,255,0.45)"
-                      >
-                        Share Price
-                      </Text>
-                      <Text
-                        c="white"
-                        fw={950}
-                        size="xl"
-                        style={{
-                          overflowWrap: "anywhere",
-                          wordBreak: "break-word",
+                    <Group gap="md" wrap="nowrap">
+                      <Avatar
+                        radius="xl"
+                        size={64}
+                        src={meta?.image || p.avatar_url || undefined}
+                        alt={`${meta?.name || `Player ${rawId}`} avatar`}
+                        styles={{
+                          root: {
+                            background:
+                              "linear-gradient(135deg, rgba(255,138,61,0.9), rgba(37,99,235,0.9))",
+                          },
                         }}
                       >
-                        {formatFtk(p.share_price_wei)}
-                      </Text>
-                    </div>
+                        🎯
+                      </Avatar>
 
-                    <Badge color="yellow" variant="light" radius="xl">
-                      HOT
+                      <div>
+                        <Text c="white" fw={950} size="lg">
+                          {meta?.name || `Player #${formatPlayerId(p.player_id)}`}
+                        </Text>
+                        <Text size="sm" c="rgba(255,255,255,0.50)">
+                          {meta
+                            ? [meta.team, meta.role].filter(Boolean).join(" • ")
+                            : "Counter-Strike market profile"}
+                        </Text>
+                      </div>
+                    </Group>
+
+                    <Badge
+                      radius="xl"
+                      color={p.exists ? "green" : "red"}
+                      variant="light"
+                    >
+                      {p.exists ? "LISTED" : "OFFLINE"}
                     </Badge>
                   </Group>
-                </Paper>
 
-                <SimpleGrid cols={2} spacing="sm">
-                  <InfoTile
-                    label="Total Shares"
-                    value={formatShares(p.total_shares)}
-                  />
-                  <InfoTile
-                    label="FTK Liquidity"
-                    value={formatFtk(p.ftk_liquidity)}
-                  />
-                  <InfoTile label="Player ID" value={formatPlayerId(p.player_id)} />
-                  <InfoTile
-                    label="Status"
-                    value={p.exists ? "Active" : "Not Listed"}
-                  />
-                </SimpleGrid>
+                  <Paper radius={18} p="md" style={innerPanel}>
+                    <Group justify="space-between" align="flex-start">
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <Text
+                          size="xs"
+                          tt="uppercase"
+                          fw={800}
+                          c="rgba(255,255,255,0.45)"
+                        >
+                          Market Value
+                        </Text>
+                        <Text
+                          c="white"
+                          fw={950}
+                          size="xl"
+                          style={{
+                            overflowWrap: "anywhere",
+                            wordBreak: "break-word",
+                          }}
+                        >
+                          {formatFtk(p.share_price_wei)}
+                        </Text>
+                      </div>
 
-                <Group grow mt="xs">
-                  <Link
-                    to={`/players/${p.player_id}`}
-                    style={{ textDecoration: "none", width: "100%" }}
-                  >
+                      <Badge color="yellow" variant="light" radius="xl">
+                        HOT
+                      </Badge>
+                    </Group>
+                  </Paper>
+
+                  <SimpleGrid cols={2} spacing="sm">
+                    <InfoTile
+                      label="Total Shares"
+                      value={formatShares(p.total_shares)}
+                    />
+                    <InfoTile
+                      label="Market Depth"
+                      value={formatFtk(p.ftk_liquidity)}
+                    />
+                    <InfoTile
+                      label="Country"
+                      value={meta?.country || "--"}
+                    />
+                    <InfoTile
+                      label="Status"
+                      value={p.exists ? "Active" : "Not Listed"}
+                    />
+                  </SimpleGrid>
+
+                  <Group grow mt="xs">
+                    <Link
+                      to={`/players/${p.player_id}`}
+                      style={{ textDecoration: "none", width: "100%" }}
+                    >
+                      <Button
+                        fullWidth
+                        radius="xl"
+                        styles={{
+                          root: {
+                            fontWeight: 900,
+                            background:
+                              "linear-gradient(135deg, #ff8a3d 0%, #ffb347 100%)",
+                            color: "#101418",
+                          },
+                        }}
+                      >
+                        Open Terminal
+                      </Button>
+                    </Link>
+
                     <Button
                       fullWidth
                       radius="xl"
+                      disabled
+                      variant="light"
                       styles={{
                         root: {
-                          fontWeight: 900,
-                          background:
-                            "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
+                          fontWeight: 800,
+                          background: "rgba(255,255,255,0.06)",
                           color: "white",
+                          border: "1px solid rgba(255,255,255,0.08)",
+                          opacity: 0.65,
+                          cursor: "not-allowed",
                         },
                       }}
                     >
-                      Open Market
+                      Watchlist (Soon)
                     </Button>
-                  </Link>
-
-                  <Button
-                    fullWidth
-                    radius="xl"
-                    disabled
-                    variant="light"
-                    styles={{
-                      root: {
-                        fontWeight: 800,
-                        background: "rgba(255,255,255,0.06)",
-                        color: "white",
-                        border: "1px solid rgba(255,255,255,0.08)",
-                        opacity: 0.65,
-                        cursor: "not-allowed",
-                      },
-                    }}
-                  >
-                    Watchlist (Soon)
-                  </Button>
-                </Group>
-              </Stack>
-            </Card>
-          ))}
+                  </Group>
+                </Stack>
+              </Card>
+            );
+          })}
         </SimpleGrid>
       </div>
     </Stack>
@@ -391,6 +416,7 @@ function InfoTile({ label, value }: { label: string; value: string }) {
 const panel: CSSProperties = {
   background: "rgba(255,255,255,0.03)",
   border: "1px solid rgba(255,255,255,0.08)",
+  backdropFilter: "blur(10px)",
 };
 
 const innerPanel: CSSProperties = {

@@ -27,6 +27,18 @@
 
 The frontend proxies `/api/*` to the backend, so the browser only talks to port 5173. This avoids CORS and port-forwarding issues.
 
+## Frontend dependencies without host `npm`
+
+You do not need Node.js on the machine: `docker compose build` runs `npm install` inside the frontend image (see `frontend/Dockerfile`).
+
+To **refresh `package-lock.json` on disk** after editing `frontend/package.json`, run this from the **repository root** (writes into `./frontend` via a bind mount):
+
+```bash
+docker run --rm -v "$(pwd)/frontend:/app" -w /app node:22-alpine npm install
+```
+
+Use the same Node major version as in `frontend/Dockerfile` (`node:22-alpine`) so the lockfile stays consistent with CI and compose builds.
+
 ## Health check
 
 ```bash
@@ -71,7 +83,7 @@ curl -I http://localhost:5173/teams
 
 ## Notes
 
-- Frontend calls API at `http://localhost:8001` (browser → host machine).
+- In Docker, the browser loads the UI from port 5173; API calls go to `/api` on the same origin and Vite proxies them to the backend.
 - CORS allows `localhost:5173` and `127.0.0.1:5173`.
 - To override API URL in frontend: set `VITE_API_BASE` in docker-compose `frontend.environment`.
 - In Phase 1, contest entry is team-based in frontend (`team_id`), while direct contract calls can still bypass backend team checks.

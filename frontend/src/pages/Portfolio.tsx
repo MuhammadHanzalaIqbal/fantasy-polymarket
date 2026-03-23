@@ -67,10 +67,11 @@ export default function Portfolio() {
         p="xl"
         style={{
           background:
-            "linear-gradient(135deg, rgba(37,99,235,0.22), rgba(22,163,74,0.14), rgba(8,18,34,0.96))",
+            "linear-gradient(rgba(7,10,14,0.42), rgba(7,10,14,0.78)), url('/images/bg-main.jpg') center/cover no-repeat",
           border: "1px solid rgba(255,255,255,0.08)",
           position: "relative",
           overflow: "hidden",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.30)",
         }}
       >
         <Box
@@ -81,7 +82,7 @@ export default function Portfolio() {
             width: 220,
             height: 220,
             borderRadius: "50%",
-            background: "rgba(34,197,94,0.12)",
+            background: "rgba(255,138,61,0.10)",
             filter: "blur(14px)",
           }}
         />
@@ -89,14 +90,14 @@ export default function Portfolio() {
         <Group justify="space-between" align="flex-start" gap="xl">
           <div>
             <Group gap="xs" mb="sm">
-              <Badge color="green" variant="light" radius="xl">
-                WALLET
+              <Badge color="orange" variant="light" radius="xl">
+                INVENTORY
               </Badge>
               <Badge color="blue" variant="light" radius="xl">
-                PORTFOLIO
+                WALLET ASSETS
               </Badge>
               <Badge color="yellow" variant="light" radius="xl">
-                FTK HOLDINGS
+                LIVE HOLDINGS
               </Badge>
             </Group>
 
@@ -109,23 +110,35 @@ export default function Portfolio() {
                 letterSpacing: -1,
               }}
             >
-              Track your FTK,
+              Track your credits,
               <br />
-              player shares,
+              roster positions,
               <br />
-              and fantasy exposure.
+              and tactical assets.
             </Text>
 
-            <Text mt="md" size="md" c="rgba(255,255,255,0.66)" maw={720}>
-              Connect your wallet, review your FTK balance, and monitor all active
-              player positions from one clean on-chain portfolio view.
+            <Text mt="md" size="md" c="rgba(255,255,255,0.70)" maw={720}>
+              Connect your wallet, review FTK balance, and monitor all tracked
+              player positions from one clean Counter-Strike inventory view.
             </Text>
           </div>
 
           <Stack gap="md" miw={220}>
-            <MiniStat label="Wallet State" value={address ? "Connected" : "Offline"} icon="👛" />
-            <MiniStat label="Positions" value={String(totalPositions)} icon="📦" />
-            <MiniStat label="FTK Ready" value={data ? formatFtk(data.ftk_balance) : "--"} icon="🪙" />
+            <MiniStat
+              label="Wallet State"
+              value={address ? "Connected" : "Offline"}
+              icon="👛"
+            />
+            <MiniStat
+              label="Positions"
+              value={String(totalPositions)}
+              icon="📦"
+            />
+            <MiniStat
+              label="FTK Ready"
+              value={data ? formatFtk(data.ftk_balance) : "--"}
+              icon="🪙"
+            />
           </Stack>
         </Group>
       </Paper>
@@ -134,15 +147,15 @@ export default function Portfolio() {
         <Group justify="space-between" align="flex-end" mb="lg">
           <div>
             <Text c="white" fw={950} size="xl">
-              Wallet Lookup
+              Wallet lookup
             </Text>
             <Text size="sm" c="rgba(255,255,255,0.55)">
-              Load the connected wallet by default, or inspect another wallet manually.
+              Load your connected wallet, or inspect another address manually.
             </Text>
           </div>
 
           <Badge color="blue" variant="light" radius="xl">
-            Portfolio Query
+            Inventory Query
           </Badge>
         </Group>
 
@@ -183,12 +196,12 @@ export default function Portfolio() {
               root: {
                 fontWeight: 900,
                 background:
-                  "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
-                color: "white",
+                  "linear-gradient(135deg, #ff8a3d 0%, #ffb347 100%)",
+                color: "#101418",
               },
             }}
           >
-            {loading ? "Loading..." : "Load Portfolio"}
+            {loading ? "Loading..." : "Load Inventory"}
           </Button>
         </Group>
       </Card>
@@ -222,7 +235,7 @@ export default function Portfolio() {
               icon="🪙"
             />
             <StatCard
-              title="Player Positions"
+              title="Tracked Positions"
               value={String(totalPositions)}
               icon="📊"
             />
@@ -232,7 +245,7 @@ export default function Portfolio() {
             <Stack gap="md">
               <div>
                 <Text c="white" fw={950} size="xl">
-                  Wallet Overview
+                  Wallet overview
                 </Text>
                 <Text size="sm" c="rgba(255,255,255,0.55)">
                   Core wallet identity and fungible token balance.
@@ -240,7 +253,12 @@ export default function Portfolio() {
               </div>
 
               <Paper radius={18} p="lg" style={innerPanel}>
-                <Text size="xs" tt="uppercase" fw={800} c="rgba(255,255,255,0.42)">
+                <Text
+                  size="xs"
+                  tt="uppercase"
+                  fw={800}
+                  c="rgba(255,255,255,0.42)"
+                >
                   Wallet Address
                 </Text>
                 <Text
@@ -254,7 +272,12 @@ export default function Portfolio() {
 
                 <Group mt="lg" justify="space-between">
                   <div>
-                    <Text size="xs" tt="uppercase" fw={800} c="rgba(255,255,255,0.42)">
+                    <Text
+                      size="xs"
+                      tt="uppercase"
+                      fw={800}
+                      c="rgba(255,255,255,0.42)"
+                    >
                       FTK Balance
                     </Text>
                     <Text c="white" fw={950} size="xl" mt={4}>
@@ -266,7 +289,7 @@ export default function Portfolio() {
                     radius="xl"
                     size={52}
                     variant="gradient"
-                    gradient={{ from: "yellow", to: "green", deg: 135 }}
+                    gradient={{ from: "orange", to: "yellow", deg: 135 }}
                   >
                     🪙
                   </ThemeIcon>
@@ -279,17 +302,18 @@ export default function Portfolio() {
             <Stack gap="md">
               <div>
                 <Text c="white" fw={950} size="xl">
-                  Player Share Holdings
+                  Active positions
                 </Text>
                 <Text size="sm" c="rgba(255,255,255,0.55)">
-                  Track your currently owned player share exposure.
+                  Review your currently held player market exposure.
                 </Text>
               </div>
 
               {shareEntries.length === 0 ? (
                 <Paper radius={18} p="lg" style={innerPanel}>
                   <Text c="rgba(255,255,255,0.62)" fw={600}>
-                    No player shares yet. Buy into a player market to build your first position.
+                    No active positions yet. Buy into a player market to build
+                    your first roster asset.
                   </Text>
                 </Paper>
               ) : (
@@ -306,7 +330,12 @@ export default function Portfolio() {
                     >
                       <Group justify="space-between" mb="md">
                         <div>
-                          <Text size="xs" tt="uppercase" fw={800} c="rgba(255,255,255,0.42)">
+                          <Text
+                            size="xs"
+                            tt="uppercase"
+                            fw={800}
+                            c="rgba(255,255,255,0.42)"
+                          >
                             Player Market
                           </Text>
                           <Text c="white" fw={950} size="lg">
@@ -319,7 +348,12 @@ export default function Portfolio() {
                         </Badge>
                       </Group>
 
-                      <Text size="xs" tt="uppercase" fw={800} c="rgba(255,255,255,0.42)">
+                      <Text
+                        size="xs"
+                        tt="uppercase"
+                        fw={800}
+                        c="rgba(255,255,255,0.42)"
+                      >
                         Shares Held
                       </Text>
                       <Text c="white" fw={950} size="xl" mt={4}>
@@ -399,7 +433,7 @@ function StatCard({
             borderRadius: 14,
             display: "grid",
             placeItems: "center",
-            background: "rgba(37,99,235,0.16)",
+            background: "rgba(255,138,61,0.16)",
           }}
         >
           <span style={{ fontSize: 18 }}>{icon}</span>
@@ -416,6 +450,7 @@ function StatCard({
 const panel: CSSProperties = {
   background: "rgba(255,255,255,0.03)",
   border: "1px solid rgba(255,255,255,0.08)",
+  backdropFilter: "blur(10px)",
 };
 
 const innerPanel: CSSProperties = {

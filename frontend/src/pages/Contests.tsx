@@ -22,7 +22,7 @@ function getContestState(contest: ContestResponse) {
 
   if (contest.resolved) {
     return {
-      label: "RESOLVED",
+      label: "COMPLETED",
       color: "gray",
       locked: true,
     };
@@ -86,10 +86,11 @@ export default function Contests() {
         p="xl"
         style={{
           background:
-            "linear-gradient(135deg, rgba(37,99,235,0.24), rgba(22,163,74,0.18), rgba(8,18,34,0.95))",
+            "linear-gradient(rgba(7,10,14,0.42), rgba(7,10,14,0.78)), url('/images/csgo-fire.jpg') center/cover no-repeat",
           border: "1px solid rgba(255,255,255,0.08)",
           position: "relative",
           overflow: "hidden",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.30)",
         }}
       >
         <Box
@@ -100,7 +101,7 @@ export default function Contests() {
             width: 220,
             height: 220,
             borderRadius: "50%",
-            background: "rgba(34,197,94,0.10)",
+            background: "rgba(255,138,61,0.10)",
             filter: "blur(12px)",
           }}
         />
@@ -108,14 +109,14 @@ export default function Contests() {
           <Grid.Col span={{ base: 12, md: 8 }}>
             <Stack gap="md">
               <Group gap="xs">
-                <Badge color="green" variant="light" radius="xl">
-                  LIVE CONTESTS
+                <Badge color="orange" variant="light" radius="xl">
+                  LIVE TOURNAMENTS
                 </Badge>
                 <Badge color="yellow" variant="light" radius="xl">
-                  MEGA POOLS
+                  MAJOR EVENTS
                 </Badge>
                 <Badge color="blue" variant="light" radius="xl">
-                  ON-CHAIN
+                  CS2 LEAGUE
                 </Badge>
               </Group>
 
@@ -129,15 +130,15 @@ export default function Contests() {
                     letterSpacing: -1,
                   }}
                 >
-                  Enter fantasy contests.
+                  Enter tactical tournaments.
                   <br />
-                  Climb the leaderboard.
+                  Climb the standings.
                   <br />
-                  Win the pool.
+                  Win the Major.
                 </Text>
-                <Text mt="md" size="md" c="rgba(255,255,255,0.68)" maw={700}>
-                  Browse open contests, compare entry fees and prize pools, then
-                  lock in your fantasy lineup for a shot at the top spot.
+                <Text mt="md" size="md" c="rgba(255,255,255,0.72)" maw={700}>
+                  Browse active tournaments, compare buy-ins and prize pools,
+                  then deploy your saved squad for a shot at the top of the table.
                 </Text>
               </div>
 
@@ -149,14 +150,14 @@ export default function Contests() {
                     root: {
                       fontWeight: 900,
                       background:
-                        "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
-                      color: "white",
-                      opacity: 0.65,
+                        "linear-gradient(135deg, #ff8a3d 0%, #ffb347 100%)",
+                      color: "#101418",
+                      opacity: 0.72,
                       cursor: "not-allowed",
                     },
                   }}
                 >
-                  Join Featured Contest (Soon)
+                  Join Featured Major (Soon)
                 </Button>
                 <Button
                   radius="xl"
@@ -170,7 +171,7 @@ export default function Contests() {
                     },
                   }}
                 >
-                  View Results
+                  View Standings
                 </Button>
               </Group>
             </Stack>
@@ -178,9 +179,9 @@ export default function Contests() {
 
           <Grid.Col span={{ base: 12, md: 4 }}>
             <Stack gap="md">
-              <MiniStat label="Total Contests" value={String(contests.length)} icon="🏆" />
-              <MiniStat label="Open Contests" value={String(openCount)} icon="🟢" />
-              <MiniStat label="Resolved" value={String(resolvedCount)} icon="✅" />
+              <MiniStat label="Total Tournaments" value={String(contests.length)} icon="🏆" />
+              <MiniStat label="Open Tournaments" value={String(openCount)} icon="🟢" />
+              <MiniStat label="Completed" value={String(resolvedCount)} icon="✅" />
             </Stack>
           </Grid.Col>
         </Grid>
@@ -206,10 +207,10 @@ export default function Contests() {
           <Group justify="space-between" align="flex-start" mb="lg">
             <div>
               <Text c="white" fw={950} size="xl">
-                Featured Contest #{featuredContest.contest_id}
+                Featured Major #{featuredContest.contest_id}
               </Text>
               <Text size="sm" c="rgba(255,255,255,0.58)">
-                High-visibility lobby card for your current contest spotlight.
+                Prime event spotlight for the current Counter-Strike tournament rotation.
               </Text>
             </div>
 
@@ -224,19 +225,19 @@ export default function Contests() {
 
           <SimpleGrid cols={{ base: 2, md: 4 }} spacing="md">
             <MetricTile
-              label="Entry Fee"
+              label="Buy-In"
               value={formatFtk(featuredContest.entry_fee)}
             />
             <MetricTile
-              label="Max Entries"
+              label="Team Slots"
               value={formatCompactNumber(featuredContest.max_entries)}
             />
             <MetricTile
-              label="Total Pot"
+              label="Prize Pool"
               value={formatFtk(featuredContest.total_pot)}
             />
             <MetricTile
-              label="Rake BPS"
+              label="Platform Fee"
               value={formatCompactNumber(featuredContest.rake_bps)}
             />
           </SimpleGrid>
@@ -252,12 +253,12 @@ export default function Contests() {
                   root: {
                     fontWeight: 900,
                     background:
-                      "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
-                    color: "white",
+                      "linear-gradient(135deg, #ff8a3d 0%, #ffb347 100%)",
+                    color: "#101418",
                   },
                 }}
               >
-                View Leaderboard
+                Open Standings
               </Button>
             </Link>
 
@@ -278,8 +279,8 @@ export default function Contests() {
                 }}
               >
                 {featuredContest.resolved
-                  ? "Contest Finished"
-                  : "Entries Closed"}
+                  ? "Tournament Closed"
+                  : "Registration Closed"}
               </Button>
             ) : (
               <Link
@@ -293,13 +294,13 @@ export default function Contests() {
                     root: {
                       fontWeight: 800,
                       background:
-                        "linear-gradient(135deg, rgba(22,163,74,0.25), rgba(37,99,235,0.18))",
+                        "linear-gradient(135deg, rgba(255,138,61,0.22), rgba(37,99,235,0.18))",
                       color: "white",
                       border: "1px solid rgba(255,255,255,0.12)",
                     },
                   }}
                 >
-                  Enter Contest
+                  Join Tournament
                 </Button>
               </Link>
             )}
@@ -309,10 +310,10 @@ export default function Contests() {
 
       <div>
         <Text c="white" fw={950} size="xl" mb={6}>
-          Contest Lobby
+          Tournament Queue
         </Text>
         <Text size="sm" c="rgba(255,255,255,0.55)" mb="lg">
-          Compare contest conditions, inspect pools, and jump into the action.
+          Compare tournament conditions, inspect prize pools, and queue your squad for action.
         </Text>
 
         <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="lg">
@@ -325,10 +326,10 @@ export default function Contests() {
                   <Group justify="space-between" align="flex-start">
                     <div>
                       <Text c="white" fw={950} size="lg">
-                        Mega Contest #{c.contest_id}
+                        Major Event #{c.contest_id}
                       </Text>
                       <Text size="sm" c="rgba(255,255,255,0.50)">
-                        Fantasy leaderboard battle
+                        Tactical CS tournament
                       </Text>
                     </div>
 
@@ -364,7 +365,7 @@ export default function Contests() {
                         radius="xl"
                         size={48}
                         variant="gradient"
-                        gradient={{ from: "yellow", to: "green", deg: 135 }}
+                        gradient={{ from: "orange", to: "yellow", deg: 135 }}
                       >
                         🏆
                       </ThemeIcon>
@@ -372,15 +373,15 @@ export default function Contests() {
                   </Paper>
 
                   <SimpleGrid cols={2} spacing="sm">
-                    <InfoTile label="Entry Fee" value={formatFtk(c.entry_fee)} />
-                    <InfoTile label="Max Entries" value={formatCompactNumber(c.max_entries)} />
-                    <InfoTile label="Rake BPS" value={formatCompactNumber(c.rake_bps)} />
-                    <InfoTile label="Contest ID" value={String(c.contest_id)} />
+                    <InfoTile label="Buy-In" value={formatFtk(c.entry_fee)} />
+                    <InfoTile label="Team Slots" value={formatCompactNumber(c.max_entries)} />
+                    <InfoTile label="Platform Fee" value={formatCompactNumber(c.rake_bps)} />
+                    <InfoTile label="Tournament ID" value={String(c.contest_id)} />
                   </SimpleGrid>
 
                   <Stack gap={8}>
                     <Row k="Start Time" v={formatTimestamp(c.start_time)} />
-                    <Row k="Lock Time" v={formatTimestamp(c.lock_time)} />
+                    <Row k="Registration Lock" v={formatTimestamp(c.lock_time)} />
                   </Stack>
 
                   <Group grow mt="xs">
@@ -395,12 +396,12 @@ export default function Contests() {
                           root: {
                             fontWeight: 900,
                             background:
-                              "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
-                            color: "white",
+                              "linear-gradient(135deg, #ff8a3d 0%, #ffb347 100%)",
+                            color: "#101418",
                           },
                         }}
                       >
-                        View Leaderboard
+                        Open Standings
                       </Button>
                     </Link>
 
@@ -421,7 +422,7 @@ export default function Contests() {
                           },
                         }}
                       >
-                        {c.resolved ? "Contest Finished" : "Entries Closed"}
+                        {c.resolved ? "Tournament Closed" : "Registration Closed"}
                       </Button>
                     ) : (
                       <Link
@@ -436,13 +437,13 @@ export default function Contests() {
                             root: {
                               fontWeight: 800,
                               background:
-                                "linear-gradient(135deg, rgba(22,163,74,0.25), rgba(37,99,235,0.18))",
+                                "linear-gradient(135deg, rgba(255,138,61,0.22), rgba(37,99,235,0.18))",
                               color: "white",
                               border: "1px solid rgba(255,255,255,0.12)",
                             },
                           }}
                         >
-                          Enter Contest
+                          Join Tournament
                         </Button>
                       </Link>
                     )}
