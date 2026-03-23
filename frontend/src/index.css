@@ -1,0 +1,69 @@
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color: rgba(255, 255, 255, 0.92);
+  background: #05070b;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  --bg-main: #05070b;
+  --bg-panel: rgba(10, 16, 24, 0.82);
+  --bg-panel-soft: rgba(255, 255, 255, 0.04);
+  --border-soft: rgba(255, 255, 255, 0.08);
+  --text-soft: rgba(255, 255, 255, 0.68);
+  --accent-green: #6dff8b;
+  --accent-cyan: #34d9ff;
+  --accent-orange: #ff8a3d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100%;
+  background:
+    linear-gradient(rgba(3, 6, 10, 0.82), rgba(3, 6, 10, 0.94)),
+    url("/images/csgo-dark.jpg") center center / cover no-repeat fixed;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+body {
+  min-height: 100vh;
+}
+
+a {
+  font-weight: 500;
+  color: inherit;
+  text-decoration: none;
+}
+
+a:hover {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
+
+.nav-btn {
+  transition:
+    transform 120ms ease,
+    box-shadow 120ms ease,
+    border-color 120ms ease;
+}
+
+.nav-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px rgba(52, 217, 255, 0.16);
+  border-color: rgba(52, 217, 255, 0.28);
+}
