@@ -22,6 +22,7 @@
 4. **Open in browser**:
 
    - Frontend (and API via proxy): http://localhost:5173
+   - Teams page: http://localhost:5173/teams
    - Backend Swagger (direct): http://localhost:8003/docs
 
 The frontend proxies `/api/*` to the backend, so the browser only talks to port 5173. This avoids CORS and port-forwarding issues.
@@ -48,6 +49,16 @@ curl http://localhost:8003/health
 
 Expect `chain_connected: true` and non-null `latest_block`. If not, fix `RPC_URL` and restart.
 
+Quick checks for Phase 1 team flow:
+
+```bash
+# teams endpoint through backend
+curl "http://localhost:8003/teams?wallet_address=0x0000000000000000000000000000000000000001"
+
+# frontend route is served (SPA shell)
+curl -I http://localhost:5173/teams
+```
+
 ## Services
 
 | Service | Port | Description |
@@ -68,9 +79,11 @@ Expect `chain_connected: true` and non-null `latest_block`. If not, fix `RPC_URL
 | ORACLE_ADAPTER_ADDRESS | Yes | Pre-filled |
 | PLAYER_SHARE_MANAGER_ADDRESS | Yes | Pre-filled |
 | DEMO_ADMIN_API_KEY | No | Default "demo-key" |
+| DATABASE_URL | No | Backend persistence DB URL (defaults to local sqlite file) |
 
 ## Notes
 
 - In Docker, the browser loads the UI from port 5173; API calls go to `/api` on the same origin and Vite proxies them to the backend.
 - CORS allows `localhost:5173` and `127.0.0.1:5173`.
 - To override API URL in frontend: set `VITE_API_BASE` in docker-compose `frontend.environment`.
+- In Phase 1, contest entry is team-based in frontend (`team_id`), while direct contract calls can still bypass backend team checks.

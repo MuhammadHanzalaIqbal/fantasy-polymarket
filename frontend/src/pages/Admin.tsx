@@ -253,7 +253,7 @@ export default function Admin() {
               value={avatarUrl}
               onChange={(e) => setAvatarUrl(e.currentTarget.value)}
               placeholder="https://cdn.example.com/player-1.png"
-              description="Saved as off-chain player metadata."
+              description="Use http/https URL. Saved as off-chain player metadata."
               styles={inputStyles}
             />
             <Button

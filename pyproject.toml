@@ -5,11 +5,14 @@ description = "MVP backend for fantasy polymarket protocol"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "alembic>=1.17.0",
     "eth-account>=0.13.7",
     "fastapi>=0.116.1",
     "httpx>=0.28.1",
+    "psycopg[binary]>=3.2.12",
     "pydantic-settings>=2.10.1",
     "python-dotenv>=1.1.1",
+    "sqlalchemy>=2.0.43",
     "tenacity>=9.1.2",
     "uvicorn[standard]>=0.35.0",
     "web3>=7.13.0",
