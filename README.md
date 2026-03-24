@@ -74,6 +74,8 @@ Smart contracts are the source of truth for:
 Backend currently provides:
 
 - FastAPI endpoints for players, contests, portfolio, and quotes,
+- persistent off-chain team management (`/teams`) for team-first UX,
+- off-chain player metadata storage (avatar URL),
 - deterministic score helpers and signed payload generation,
 - direct write operations for oracle submission and contest resolution,
 - demo script and smoke tests.
@@ -144,14 +146,31 @@ Design rule: backend improves UX and operations, but does not custody funds.
 - `GET /market/{player_id}/quote`
 - `GET /contests`
 - `GET /contests/{contest_id}/leaderboard`
+- `GET /contests/{contest_id}/results`
 - `GET /portfolio/{wallet_address}`
+- `GET /me/portfolio?wallet=0x...`
+- `GET /teams?wallet_address=0x...`
+- `GET /teams/{team_id}?wallet_address=0x...`
+- `POST /market/{player_id}/trade-intent`
+- `POST /contests/{contest_id}/entry-intent`
+- `POST /teams`
 
 ### Demo admin/write endpoints
 
 - `POST /oracle/submit-matchweek`
 - `POST /contests/{contest_id}/resolve`
+- `POST /admin/players`
+- `POST /admin/contests`
+- `POST /admin/contests/{contest_id}/resolve`
 
 Both write endpoints require `X-API-Key` matching `DEMO_ADMIN_API_KEY`.
+
+### Important Phase 1 behavior
+
+- Contest entry intent now supports `team_id` (team-first flow) and legacy `players` input.
+- Team creation/validation is enforced in backend only (off-chain).
+- Contest settlement score source is unchanged: on-chain `contestEntries[].score`.
+- Admin player creation accepts optional `avatar_url`; players API can return `avatar_url`.
 
 ---
 
@@ -164,16 +183,23 @@ fantasy-polymarket/
 ├── backend/
 │   ├── app/
 │   │   ├── api/routes/
+│   │   ├── db/
 │   │   ├── blockchain/
 │   │   ├── models/
 │   │   ├── oracle/
 │   │   ├── services/
 │   │   ├── config.py
 │   │   └── main.py
+│   ├── alembic/
 │   ├── scripts/
 │   │   └── demo_flow.py
 │   ├── tests/
 │   └── DEMO_CHECKLIST.md
+├── frontend/
+│   ├── src/pages/
+│   │   ├── Teams.tsx
+│   │   └── ContestDetail.tsx
+│   └── src/services/api.ts
 ├── .env.example
 ├── pyproject.toml
 ├── main.py
@@ -245,11 +271,15 @@ Manual testing sequence:
 1. `GET /health`
 2. `GET /players`
 3. `GET /market/{player_id}/quote`
-4. `GET /contests`
-5. `POST /oracle/submit-matchweek` (admin)
-6. `POST /contests/{contest_id}/resolve` (admin)
-7. `GET /contests/{contest_id}/leaderboard`
-8. `GET /portfolio/{wallet_address}`
+4. `POST /market/{player_id}/trade-intent` and sign/send with wallet
+5. `GET /contests`
+6. `POST /teams` to create a team (wallet + 5 members + roles)
+7. `POST /contests/{contest_id}/entry-intent` with `team_id` and sign/send with wallet
+8. `POST /oracle/submit-matchweek` (admin)
+9. `POST /admin/contests/{contest_id}/resolve` (admin)
+10. `GET /contests/{contest_id}/leaderboard`
+11. `GET /contests/{contest_id}/results`
+12. `GET /me/portfolio?wallet=0x...`
 
 ---
 
@@ -260,6 +290,7 @@ Manual testing sequence:
 - No production-grade auth model yet (demo API key only).
 - No indexer-backed read model yet; many reads query chain directly.
 - Contract and backend test coverage is still MVP-level.
+- Team validation is backend-only in Phase 1 and can be bypassed by direct contract calls.
 
 ---
 

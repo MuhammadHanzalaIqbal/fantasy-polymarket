@@ -1,0 +1,27 @@
+# Git and IDE
+.git
+.gitignore
+.cursor
+*.md
+!backend/app/blockchain/abis/README.md
+
+# Python
+__pycache__
+*.py[cod]
+.venv
+.pytest_cache
+.mypy_cache
+*.egg-info
+
+# Node
+frontend/node_modules
+frontend/dist
+
+# Env (inject at runtime, do not bake into image)
+.env
+.env.*
+!.env.docker.example
+
+# Tests and dev scripts (not needed at runtime)
+backend/tests
+backend/scripts

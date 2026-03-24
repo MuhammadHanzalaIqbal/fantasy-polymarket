@@ -218,3 +218,7 @@ __marimo__/
 .cursor
 
 .env
+
+node_modules/
+.vite/
+dist/

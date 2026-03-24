@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type CSSProperties,
+} from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   Alert,
@@ -394,9 +400,9 @@ export default function ContestDetail() {
               root: {
                 fontWeight: 900,
                 background:
-                  "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
-                color: "white",
-                boxShadow: "0 10px 28px rgba(22,163,74,0.30)",
+                  "linear-gradient(135deg, #ff8a3d 0%, #ffb347 100%)",
+                color: "#101418",
+                boxShadow: "0 10px 28px rgba(255,138,61,0.28)",
               },
             }}
           >
@@ -414,7 +420,6 @@ export default function ContestDetail() {
           {status}
         </Alert>
       )}
-
       {err && (
         <Alert
           color="red"
@@ -479,7 +484,6 @@ export default function ContestDetail() {
               <div>User</div>
               <div>Score</div>
             </div>
-
             {rows.length === 0 && !err && (
               <div
                 style={{
@@ -491,7 +495,6 @@ export default function ContestDetail() {
                 No entries
               </div>
             )}
-
             {rows.map((r) => (
               <div
                 key={`${r.user}-${r.rank}`}

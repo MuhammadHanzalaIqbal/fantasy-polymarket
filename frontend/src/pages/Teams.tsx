@@ -29,6 +29,7 @@ import { playersData } from "../data/players_data";
 const panel: CSSProperties = {
   background: "rgba(255,255,255,0.03)",
   border: "1px solid rgba(255,255,255,0.08)",
+  backdropFilter: "blur(10px)",
 };
 
 const innerPanel: CSSProperties = {
@@ -136,24 +137,20 @@ export default function Teams() {
   }
 
   function validateDraft(): string | null {
-    if (!teamName.trim()) {
-      return "Squad name is required.";
-    }
-    if (members.length !== 5) {
-      return "Squad must contain exactly 5 players.";
-    }
+    if (!teamName.trim()) return "Squad name is required.";
+    if (members.length !== 5) return "Squad must contain exactly 5 players.";
+
     const sortedSlots = [...members].map((m) => m.slot_index).sort();
     if (JSON.stringify(sortedSlots) !== JSON.stringify([0, 1, 2, 3, 4])) {
       return "Slots must include each index from 0 to 4 exactly once.";
     }
+
     const duplicatePlayers = members.some(
       (member, idx) =>
         members.findIndex((candidate) => candidate.player_id === member.player_id) !==
         idx
     );
-    if (duplicatePlayers) {
-      return "Player IDs must be unique.";
-    }
+    if (duplicatePlayers) return "Player IDs must be unique.";
     if (members.some((member) => member.player_id <= 0)) {
       return "Each player ID must be a positive integer.";
     }
@@ -303,7 +300,6 @@ export default function Teams() {
             <Text c="white" fw={950} size="xl">
               Create squad
             </Text>
-
             <TextInput
               label="Squad name"
               value={teamName}
@@ -555,6 +551,9 @@ const darkInputStyles = {
     color: "rgba(255,255,255,0.68)",
     marginBottom: 6,
     fontWeight: 700,
+  },
+  description: {
+    color: "rgba(255,255,255,0.48)",
   },
   input: {
     borderRadius: 16,

@@ -200,7 +200,7 @@ export const playersData: Record<number, ManualPlayerMeta> = {
     team: "Virtus.pro",
     role: "Rifler",
     country: "Russia",
-    image: "/images/players/Fl1T.png",
+    image: "/images/players/FL1T.png",
   },
   25: {
     id: 25,

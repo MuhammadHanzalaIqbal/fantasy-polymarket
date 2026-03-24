@@ -1,0 +1,40 @@
+# Fantasy Polymarket MVP - Backend + Frontend
+# Usage: cp .env.docker.example .env  # then edit RPC_URL, PRIVATE_KEY
+#        docker compose up --build
+#
+# Frontend proxies /api/* to backend; browser only talks to localhost:5173.
+# No CORS or port-forwarding issues.
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8003:8003"
+    env_file:
+      - .env
+    environment:
+      - RPC_URL=${RPC_URL}
+      - CHAIN_ID=${CHAIN_ID:-11155111}
+      - PORT=8003
+      - PRIVATE_KEY=${PRIVATE_KEY}
+      - FANTASY_TOKEN_ADDRESS=${FANTASY_TOKEN_ADDRESS}
+      - PLAYER_MARKET_ADDRESS=${PLAYER_MARKET_ADDRESS}
+      - CONTEST_MANAGER_ADDRESS=${CONTEST_MANAGER_ADDRESS}
+      - ORACLE_ADAPTER_ADDRESS=${ORACLE_ADAPTER_ADDRESS}
+      - PLAYER_SHARE_MANAGER_ADDRESS=${PLAYER_SHARE_MANAGER_ADDRESS}
+      - DEMO_ADMIN_API_KEY=${DEMO_ADMIN_API_KEY:-demo-key}
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    environment:
+      # Fetch from same origin; Vite proxies /api -> backend
+      - VITE_API_BASE=/api
+      - VITE_PROXY_TARGET=http://backend:8003
