@@ -8,6 +8,7 @@ import {
 import { Link, useParams } from "react-router-dom";
 import {
   Alert,
+  Avatar,
   Badge,
   Box,
   Button,
@@ -23,6 +24,7 @@ import type { LeaderboardEntryResponse, TeamResponse } from "../services/api";
 import { useWallet } from "../context/WalletContext";
 import { sendIntentTransaction, waitForReceipt } from "../services/tx";
 import { formatPlayerId } from "../utils/format";
+import { playersData } from "../data/players_data";
 
 const panel: CSSProperties = {
   background: "rgba(255,255,255,0.03)",
@@ -37,7 +39,7 @@ const innerPanel: CSSProperties = {
 
 const paperStyle = {
   background:
-    "linear-gradient(135deg, rgba(37,99,235,0.24), rgba(22,163,74,0.18), rgba(8,18,34,0.95))",
+    "linear-gradient(135deg, rgba(255,138,61,0.14), rgba(37,99,235,0.18), rgba(8,18,34,0.95))",
   border: "1px solid rgba(255,255,255,0.08)",
   position: "relative" as const,
   overflow: "hidden" as const,
@@ -61,6 +63,25 @@ const selectStyles = {
   },
 };
 
+type ManualPlayerMeta = {
+  name: string;
+  team?: string;
+  role?: string;
+  country?: string;
+  image?: string;
+};
+
+function normalizePlayerId(playerId: number | string) {
+  const numericId = Number(playerId);
+  return numericId >= 10 ** 18 ? Math.floor(numericId / 10 ** 18) : numericId;
+}
+
+function extractPlayerIdFromError(message: string): number | null {
+  const match = message.match(/player\s+(\d+)/i);
+  if (!match) return null;
+  return normalizePlayerId(match[1]);
+}
+
 export default function ContestDetail() {
   const { contestId } = useParams();
   const cid = useMemo(() => Number(contestId), [contestId]);
@@ -72,6 +93,7 @@ export default function ContestDetail() {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [entryErrorPlayer, setEntryErrorPlayer] = useState<ManualPlayerMeta | null>(null);
 
   const txBusy = status !== null && !status.includes("confirmed");
   const selectedTeam = useMemo(
@@ -129,6 +151,7 @@ export default function ContestDetail() {
   async function enterContest() {
     try {
       setErr(null);
+      setEntryErrorPlayer(null);
 
       let wallet = address;
       if (!wallet) {
@@ -160,8 +183,17 @@ export default function ContestDetail() {
       setStatus("Contest entry confirmed");
       await loadLeaderboard();
     } catch (e: unknown) {
-      setErr(e instanceof Error ? e.message : String(e));
+      const message = e instanceof Error ? e.message : String(e);
+      setErr(message);
       setStatus(null);
+
+      const rawId = extractPlayerIdFromError(message);
+      if (rawId) {
+        const meta = (playersData as Record<number, ManualPlayerMeta>)[rawId];
+        setEntryErrorPlayer(meta ?? null);
+      } else {
+        setEntryErrorPlayer(null);
+      }
     }
   }
 
@@ -176,16 +208,16 @@ export default function ContestDetail() {
             width: 220,
             height: 220,
             borderRadius: "50%",
-            background: "rgba(34,197,94,0.10)",
+            background: "rgba(255,138,61,0.10)",
             filter: "blur(12px)",
           }}
         />
         <Group gap="xs" mb="sm">
-          <Badge color="green" variant="light" radius="xl">
+          <Badge color="orange" variant="light" radius="xl">
             CONTEST ENTRY
           </Badge>
           <Badge color="blue" variant="light" radius="xl">
-            LEADERBOARD
+            TEAM QUEUE
           </Badge>
         </Group>
         <Text
@@ -197,10 +229,10 @@ export default function ContestDetail() {
             letterSpacing: -1,
           }}
         >
-          Contest #{cid}
+          Tournament #{cid}
         </Text>
         <Text mt="md" size="md" c="rgba(255,255,255,0.68)" maw={700}>
-          Select one of your saved teams and join the pool.
+          Select one of your saved squads and queue into the event.
         </Text>
         <Button
           component={Link}
@@ -217,7 +249,7 @@ export default function ContestDetail() {
             },
           }}
         >
-          Back to contests
+          Back to tournaments
         </Button>
       </Paper>
 
@@ -295,29 +327,63 @@ export default function ContestDetail() {
                     disabled={txBusy}
                     styles={selectStyles}
                   />
+
                   {selectedTeam && (
-                    <Stack gap="xs">
+                    <Stack gap="sm">
                       <Text c="white" fw={800}>
                         Selected team roster
                       </Text>
+
                       {selectedTeam.members
                         .sort((a, b) => a.slot_index - b.slot_index)
-                        .map((member) => (
-                          <Group
-                            key={`${selectedTeam.team_id}-${member.slot_index}`}
-                            gap="xs"
-                          >
-                            <Badge radius="xl" color="blue" variant="light">
-                              Slot {member.slot_index + 1}
-                            </Badge>
-                            <Text c="white" fw={700}>
-                              Player {formatPlayerId(member.player_id)}
-                            </Text>
-                            <Text size="sm" c="rgba(255,255,255,0.6)">
-                              {member.role_label}
-                            </Text>
-                          </Group>
-                        ))}
+                        .map((member) => {
+                          const rawId = normalizePlayerId(member.player_id);
+                          const meta =
+                            (playersData as Record<number, ManualPlayerMeta>)[rawId];
+
+                          return (
+                            <Group
+                              key={`${selectedTeam.team_id}-${member.slot_index}`}
+                              gap="md"
+                              align="center"
+                              wrap="nowrap"
+                            >
+                              <Badge radius="xl" color="blue" variant="light">
+                                SLOT {member.slot_index + 1}
+                              </Badge>
+
+                              <Avatar
+                                radius="xl"
+                                size={46}
+                                src={meta?.image || undefined}
+                                alt={`${meta?.name || `Player ${rawId}`} avatar`}
+                                styles={{
+                                  root: {
+                                    background:
+                                      "linear-gradient(135deg, rgba(255,138,61,0.9), rgba(37,99,235,0.9))",
+                                  },
+                                }}
+                              >
+                                🎯
+                              </Avatar>
+
+                              <div style={{ flex: 1 }}>
+                                <Text c="white" fw={800}>
+                                  {meta?.name || `Player ${formatPlayerId(member.player_id)}`}
+                                </Text>
+                                <Text size="sm" c="rgba(255,255,255,0.58)">
+                                  {meta
+                                    ? [meta.team, meta.country].filter(Boolean).join(" • ")
+                                    : `ID ${formatPlayerId(member.player_id)}`}
+                                </Text>
+                              </div>
+
+                              <Text size="sm" c="rgba(255,255,255,0.7)" fw={700}>
+                                {member.role_label}
+                              </Text>
+                            </Group>
+                          );
+                        })}
                     </Stack>
                   )}
                 </Stack>
@@ -334,9 +400,9 @@ export default function ContestDetail() {
               root: {
                 fontWeight: 900,
                 background:
-                  "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
-                color: "white",
-                boxShadow: "0 10px 28px rgba(22,163,74,0.30)",
+                  "linear-gradient(135deg, #ff8a3d 0%, #ffb347 100%)",
+                color: "#101418",
+                boxShadow: "0 10px 28px rgba(255,138,61,0.28)",
               },
             }}
           >
@@ -360,7 +426,41 @@ export default function ContestDetail() {
           radius={16}
           style={{ background: "rgba(239,68,68,0.15)" }}
         >
-          {err}
+          {entryErrorPlayer ? (
+            <Group gap="md" wrap="nowrap">
+              <Avatar
+                radius="xl"
+                size={52}
+                src={entryErrorPlayer.image || undefined}
+                alt={entryErrorPlayer.name}
+                styles={{
+                  root: {
+                    background:
+                      "linear-gradient(135deg, rgba(255,138,61,0.9), rgba(37,99,235,0.9))",
+                  },
+                }}
+              >
+                🎯
+              </Avatar>
+
+              <div>
+                <Text c="white" fw={800}>
+                  You do not own shares of {entryErrorPlayer.name}.
+                </Text>
+                <Text size="sm" c="rgba(255,255,255,0.72)">
+                  {[
+                    entryErrorPlayer.team,
+                    entryErrorPlayer.role,
+                    entryErrorPlayer.country,
+                  ]
+                    .filter(Boolean)
+                    .join(" • ")}
+                </Text>
+              </div>
+            </Group>
+          ) : (
+            <Text>{err}</Text>
+          )}
         </Alert>
       )}
 

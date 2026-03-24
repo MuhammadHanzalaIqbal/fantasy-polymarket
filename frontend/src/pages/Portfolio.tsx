@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import {
+  Avatar,
   Badge,
   Box,
   Button,
@@ -16,6 +17,20 @@ import { api } from "../services/api";
 import type { PortfolioResponse } from "../services/api";
 import { useWallet } from "../context/WalletContext";
 import { formatFtk, formatPlayerId, formatShares } from "../utils/format";
+import { playersData } from "../data/players_data";
+
+function normalizePlayerId(playerId: string | number) {
+  const numericId = Number(playerId);
+  return numericId >= 10 ** 18 ? Math.floor(numericId / 10 ** 18) : numericId;
+}
+
+type ManualPlayerMeta = {
+  name: string;
+  team?: string;
+  role?: string;
+  country?: string;
+  image?: string;
+};
 
 export default function Portfolio() {
   const { address, connect } = useWallet();
@@ -67,7 +82,7 @@ export default function Portfolio() {
         p="xl"
         style={{
           background:
-            "linear-gradient(rgba(7,10,14,0.42), rgba(7,10,14,0.78)), url('/images/bg-main.jpg') center/cover no-repeat",
+            "linear-gradient(rgba(7,10,14,0.42), rgba(7,10,14,0.78)), url('/images/csgo-dark.jpg') center/cover no-repeat",
           border: "1px solid rgba(255,255,255,0.08)",
           position: "relative",
           overflow: "hidden",
@@ -318,49 +333,69 @@ export default function Portfolio() {
                 </Paper>
               ) : (
                 <SimpleGrid cols={{ base: 1, md: 2, xl: 3 }} spacing="md">
-                  {shareEntries.map(([pid, amt]) => (
-                    <Paper
-                      key={pid}
-                      radius={20}
-                      p="lg"
-                      style={{
-                        background: "rgba(255,255,255,0.04)",
-                        border: "1px solid rgba(255,255,255,0.06)",
-                      }}
-                    >
-                      <Group justify="space-between" mb="md">
-                        <div>
-                          <Text
-                            size="xs"
-                            tt="uppercase"
-                            fw={800}
-                            c="rgba(255,255,255,0.42)"
-                          >
-                            Player Market
-                          </Text>
-                          <Text c="white" fw={950} size="lg">
-                            Player {formatPlayerId(pid)}
-                          </Text>
-                        </div>
+                  {shareEntries.map(([pid, amt]) => {
+                    const rawId = normalizePlayerId(pid);
+                    const meta = (playersData as Record<number, ManualPlayerMeta>)[rawId];
 
-                        <Badge color="green" variant="light" radius="xl">
-                          ACTIVE
-                        </Badge>
-                      </Group>
-
-                      <Text
-                        size="xs"
-                        tt="uppercase"
-                        fw={800}
-                        c="rgba(255,255,255,0.42)"
+                    return (
+                      <Paper
+                        key={pid}
+                        radius={20}
+                        p="lg"
+                        style={{
+                          background: "rgba(255,255,255,0.04)",
+                          border: "1px solid rgba(255,255,255,0.06)",
+                        }}
                       >
-                        Shares Held
-                      </Text>
-                      <Text c="white" fw={950} size="xl" mt={4}>
-                        {formatShares(amt)}
-                      </Text>
-                    </Paper>
-                  ))}
+                        <Group justify="space-between" align="flex-start" mb="md">
+                          <Group gap="md" wrap="nowrap">
+                            <Avatar
+                              radius="xl"
+                              size={60}
+                              src={meta?.image || undefined}
+                              alt={`${meta?.name || `Player ${rawId}`} avatar`}
+                              styles={{
+                                root: {
+                                  background:
+                                    "linear-gradient(135deg, rgba(255,138,61,0.9), rgba(37,99,235,0.9))",
+                                },
+                              }}
+                            >
+                              🎯
+                            </Avatar>
+
+                            <div>
+                              <Text
+                                size="xs"
+                                tt="uppercase"
+                                fw={800}
+                                c="rgba(255,255,255,0.42)"
+                              >
+                                Player Market
+                              </Text>
+                              <Text c="white" fw={950} size="lg">
+                                {meta?.name || `Player ${formatPlayerId(pid)}`}
+                              </Text>
+                              <Text size="sm" c="rgba(255,255,255,0.58)">
+                                {meta
+                                  ? [meta.team, meta.role].filter(Boolean).join(" • ")
+                                  : `ID ${formatPlayerId(pid)}`}
+                              </Text>
+                            </div>
+                          </Group>
+
+                          <Badge color="green" variant="light" radius="xl">
+                            ACTIVE
+                          </Badge>
+                        </Group>
+
+                        <SimpleGrid cols={2} spacing="sm">
+                          <InfoTile label="Shares Held" value={formatShares(amt)} />
+                          <InfoTile label="Country" value={meta?.country || "--"} />
+                        </SimpleGrid>
+                      </Paper>
+                    );
+                  })}
                 </SimpleGrid>
               )}
             </Stack>
@@ -444,6 +479,35 @@ function StatCard({
         {value}
       </Text>
     </Card>
+  );
+}
+
+function InfoTile({ label, value }: { label: string; value: string }) {
+  return (
+    <Paper
+      radius={16}
+      p="sm"
+      style={{
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        minWidth: 0,
+      }}
+    >
+      <Text size="xs" tt="uppercase" fw={800} c="rgba(255,255,255,0.42)">
+        {label}
+      </Text>
+      <Text
+        c="white"
+        fw={850}
+        mt={4}
+        style={{
+          overflowWrap: "anywhere",
+          wordBreak: "break-word",
+        }}
+      >
+        {value}
+      </Text>
+    </Paper>
   );
 }
 

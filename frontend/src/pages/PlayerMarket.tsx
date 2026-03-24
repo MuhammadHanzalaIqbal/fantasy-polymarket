@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState, type CSSProperties } from "react";
 import { useParams } from "react-router-dom";
 import {
+  Avatar,
   Badge,
   Box,
   Button,
@@ -23,24 +24,33 @@ import {
   waitForReceipt,
 } from "../services/tx";
 import { formatFtk, humanToWei } from "../utils/format";
+import { playersData } from "../data/players_data";
 
-function formatPlayerId(id: string | number | undefined) {
-  if (!id) return "";
-  const s = String(id);
-  return s.endsWith("000000000000000000") ? s.slice(0, -18) : s;
+function normalizePlayerId(playerId: string | number | undefined) {
+  if (!playerId) return 0;
+  const numericId = Number(playerId);
+  return numericId >= 10 ** 18 ? Math.floor(numericId / 10 ** 18) : numericId;
 }
+
+type ManualPlayerMeta = {
+  name: string;
+  team?: string;
+  role?: string;
+  country?: string;
+  image?: string;
+};
 
 export default function PlayerMarket() {
   const { playerId } = useParams();
   const pid = useMemo(() => Number(playerId), [playerId]);
-  const displayPlayerId = useMemo(() => formatPlayerId(playerId), [playerId]);
+  const rawId = useMemo(() => normalizePlayerId(playerId), [playerId]);
+  const meta = (playersData as Record<number, ManualPlayerMeta>)[rawId];
 
   const { address, connect } = useWallet();
-
   const actionLockRef = useRef(false);
 
   const [side, setSide] = useState<QuoteSide>("buy");
-  const [amount, setAmount] = useState<number>(1); // Human FTK (e.g. 1 = 1 FTK)
+  const [amount, setAmount] = useState<number>(1);
   const [slippageBps, setSlippageBps] = useState<number>(100);
   const [quote, setQuote] = useState<QuoteResponse | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -155,10 +165,11 @@ export default function PlayerMarket() {
         p="xl"
         style={{
           background:
-            "linear-gradient(135deg, rgba(37,99,235,0.22), rgba(22,163,74,0.14), rgba(8,18,34,0.96))",
+            "linear-gradient(rgba(7,10,14,0.42), rgba(7,10,14,0.78)), url('/images/csgo-dark.jpg') center/cover no-repeat",
           border: "1px solid rgba(255,255,255,0.08)",
           overflow: "hidden",
           position: "relative",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.30)",
         }}
       >
         <Box
@@ -169,38 +180,64 @@ export default function PlayerMarket() {
             width: 220,
             height: 220,
             borderRadius: "50%",
-            background: "rgba(34,197,94,0.12)",
+            background: "rgba(255,138,61,0.12)",
             filter: "blur(12px)",
           }}
         />
 
         <Group justify="space-between" align="flex-start" gap="xl">
-          <div>
+          <div style={{ flex: 1 }}>
             <Group gap="xs" mb="sm">
-              <Badge color="green" variant="light" radius="xl">
+              <Badge color="orange" variant="light" radius="xl">
                 LIVE MARKET
               </Badge>
               <Badge color="blue" variant="light" radius="xl">
-                PLAYER SHARES
+                PLAYER VALUE
               </Badge>
               <Badge color="yellow" variant="light" radius="xl">
                 TRADE TERMINAL
               </Badge>
             </Group>
 
-            <Text
-              c="white"
-              fw={950}
-              style={{
-                fontSize: "clamp(28px, 5vw, 48px)",
-                lineHeight: 1.04,
-                letterSpacing: -1,
-              }}
-            >
-              Player #{displayPlayerId}
-              <br />
-              fantasy market terminal
-            </Text>
+            <Group gap="md" align="center" mb="md" wrap="wrap">
+              <Avatar
+                radius="xl"
+                size={84}
+                src={meta?.image || undefined}
+                alt={`${meta?.name || `Player ${rawId}`} avatar`}
+                styles={{
+                  root: {
+                    background:
+                      "linear-gradient(135deg, rgba(255,138,61,0.9), rgba(37,99,235,0.9))",
+                    border: "1px solid rgba(255,255,255,0.12)",
+                  },
+                }}
+              >
+                🎯
+              </Avatar>
+
+              <div>
+                <Text
+                  c="white"
+                  fw={950}
+                  style={{
+                    fontSize: "clamp(28px, 5vw, 48px)",
+                    lineHeight: 1.04,
+                    letterSpacing: -1,
+                  }}
+                >
+                  {meta?.name || `Player #${rawId}`}
+                  <br />
+                  transfer terminal
+                </Text>
+
+                <Text mt={6} size="md" c="rgba(255,255,255,0.68)">
+                  {meta
+                    ? [meta.team, meta.role, meta.country].filter(Boolean).join(" • ")
+                    : `Player ID ${rawId}`}
+                </Text>
+              </div>
+            </Group>
 
             <Text mt="md" size="md" c="rgba(255,255,255,0.66)" maw={700}>
               Get a quote, approve FTK if required, then execute your buy or sell
@@ -249,7 +286,7 @@ export default function PlayerMarket() {
                   },
                   indicator: {
                     background:
-                      "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
+                      "linear-gradient(135deg, #ff8a3d 0%, #ffb347 100%)",
                   },
                   label: {
                     color: "white",
@@ -306,9 +343,9 @@ export default function PlayerMarket() {
                   root: {
                     fontWeight: 900,
                     background:
-                      "linear-gradient(135deg, #16A34A 0%, #22C55E 100%)",
-                    color: "white",
-                    boxShadow: "0 10px 28px rgba(22,163,74,0.30)",
+                      "linear-gradient(135deg, #ff8a3d 0%, #ffb347 100%)",
+                    color: "#101418",
+                    boxShadow: "0 10px 28px rgba(255,138,61,0.28)",
                   },
                 }}
               >
@@ -508,6 +545,7 @@ function InfoLine({ text }: { text: string }) {
 const panel: CSSProperties = {
   background: "rgba(255,255,255,0.03)",
   border: "1px solid rgba(255,255,255,0.08)",
+  backdropFilter: "blur(10px)",
 };
 
 const innerPanel: CSSProperties = {
@@ -517,7 +555,7 @@ const innerPanel: CSSProperties = {
 
 const statusPanel: CSSProperties = {
   background:
-    "linear-gradient(135deg, rgba(34,197,94,0.14), rgba(37,99,235,0.14))",
+    "linear-gradient(135deg, rgba(255,138,61,0.14), rgba(37,99,235,0.14))",
   border: "1px solid rgba(255,255,255,0.08)",
 };
 
@@ -526,6 +564,9 @@ const darkInputStyles = {
     color: "rgba(255,255,255,0.68)",
     marginBottom: 6,
     fontWeight: 700,
+  },
+  description: {
+    color: "rgba(255,255,255,0.5)",
   },
   input: {
     borderRadius: 16,

@@ -7,6 +7,7 @@ import {
 } from "react";
 import {
   Alert,
+  Avatar,
   Badge,
   Box,
   Button,
@@ -23,6 +24,7 @@ import {
 import { useWallet } from "../context/WalletContext";
 import { api, type TeamCreateMember, type TeamResponse } from "../services/api";
 import { formatPlayerId } from "../utils/format";
+import { playersData } from "../data/players_data";
 
 const panel: CSSProperties = {
   background: "rgba(255,255,255,0.03)",
@@ -40,6 +42,14 @@ type MemberDraft = {
   player_id: number;
   role_label: string;
   nickname: string;
+};
+
+type ManualPlayerMeta = {
+  name: string;
+  team?: string;
+  role?: string;
+  country?: string;
+  image?: string;
 };
 
 function initialMembers(): MemberDraft[] {
@@ -60,6 +70,11 @@ function buildMembersPayload(members: MemberDraft[]): TeamCreateMember[] {
       ? { nickname: member.nickname.trim() }
       : undefined,
   }));
+}
+
+function normalizePlayerId(playerId: number | string) {
+  const numericId = Number(playerId);
+  return numericId >= 10 ** 18 ? Math.floor(numericId / 10 ** 18) : numericId;
 }
 
 export default function Teams() {
@@ -294,50 +309,80 @@ export default function Teams() {
             />
 
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-              {members.map((member) => (
-                <Paper key={member.slot_index} radius={16} p="sm" style={innerPanel}>
-                  <Stack gap="xs">
-                    <Text c="white" fw={800} size="sm">
-                      Slot {member.slot_index + 1}
-                    </Text>
-                    <NumberInput
-                      label="Player ID"
-                      value={member.player_id}
-                      min={1}
-                      onChange={(value) =>
-                        updateMember(member.slot_index, "player_id", Number(value) || 0)
-                      }
-                      styles={darkInputStyles}
-                    />
-                    <TextInput
-                      label="Role"
-                      value={member.role_label}
-                      onChange={(event) =>
-                        updateMember(
-                          member.slot_index,
-                          "role_label",
-                          event.currentTarget.value
-                        )
-                      }
-                      placeholder="IGL / Entry / AWPer / Support / Lurker"
-                      styles={darkInputStyles}
-                    />
-                    <TextInput
-                      label="Nickname (optional)"
-                      value={member.nickname}
-                      onChange={(event) =>
-                        updateMember(
-                          member.slot_index,
-                          "nickname",
-                          event.currentTarget.value
-                        )
-                      }
-                      placeholder="player tag"
-                      styles={darkInputStyles}
-                    />
-                  </Stack>
-                </Paper>
-              ))}
+              {members.map((member) => {
+                const rawId = normalizePlayerId(member.player_id);
+                const meta = (playersData as Record<number, ManualPlayerMeta>)[rawId];
+
+                return (
+                  <Paper key={member.slot_index} radius={16} p="sm" style={innerPanel}>
+                    <Stack gap="xs">
+                      <Group gap="sm" wrap="nowrap">
+                        <Avatar
+                          radius="xl"
+                          size={48}
+                          src={meta?.image || undefined}
+                          alt={`${meta?.name || `Player ${rawId}`} avatar`}
+                          styles={{
+                            root: {
+                              background:
+                                "linear-gradient(135deg, rgba(255,138,61,0.9), rgba(37,99,235,0.9))",
+                            },
+                          }}
+                        >
+                          🎯
+                        </Avatar>
+
+                        <div>
+                          <Text c="white" fw={800} size="sm">
+                            Slot {member.slot_index + 1}
+                          </Text>
+                          <Text size="xs" c="rgba(255,255,255,0.55)">
+                            {meta?.name || `Player ${rawId}`}
+                          </Text>
+                        </div>
+                      </Group>
+
+                      <NumberInput
+                        label="Player ID"
+                        value={member.player_id}
+                        min={1}
+                        onChange={(value) =>
+                          updateMember(member.slot_index, "player_id", Number(value) || 0)
+                        }
+                        styles={darkInputStyles}
+                      />
+
+                      <TextInput
+                        label="Role"
+                        value={member.role_label}
+                        onChange={(event) =>
+                          updateMember(
+                            member.slot_index,
+                            "role_label",
+                            event.currentTarget.value
+                          )
+                        }
+                        placeholder="IGL / Entry / AWPer / Support / Lurker"
+                        styles={darkInputStyles}
+                      />
+
+                      <TextInput
+                        label="Nickname (optional)"
+                        value={member.nickname}
+                        onChange={(event) =>
+                          updateMember(
+                            member.slot_index,
+                            "nickname",
+                            event.currentTarget.value
+                          )
+                        }
+                        placeholder="player tag"
+                        styles={darkInputStyles}
+                      />
+                    </Stack>
+                  </Paper>
+                );
+              })}
             </SimpleGrid>
 
             <Button
@@ -417,23 +462,61 @@ export default function Teams() {
 
             {selectedTeam && (
               <Paper radius={16} p="md" style={innerPanel}>
-                <Stack gap="xs">
+                <Stack gap="sm">
                   <Text c="white" fw={900}>
                     Squad #{selectedTeam.team_id}: {selectedTeam.name}
                   </Text>
+
                   {selectedTeam.members
                     .sort((a, b) => a.slot_index - b.slot_index)
-                    .map((member) => (
-                      <Group key={`${selectedTeam.team_id}-${member.slot_index}`} gap="xs">
-                        <Badge radius="xl" color="blue" variant="light">
-                          Slot {member.slot_index + 1}
-                        </Badge>
-                        <Text c="white" fw={700}>
-                          Player {formatPlayerId(member.player_id)}
-                        </Text>
-                        <Text c="rgba(255,255,255,0.6)">{member.role_label}</Text>
-                      </Group>
-                    ))}
+                    .map((member) => {
+                      const rawId = normalizePlayerId(member.player_id);
+                      const meta =
+                        (playersData as Record<number, ManualPlayerMeta>)[rawId];
+
+                      return (
+                        <Group
+                          key={`${selectedTeam.team_id}-${member.slot_index}`}
+                          gap="md"
+                          align="center"
+                          wrap="nowrap"
+                        >
+                          <Badge radius="xl" color="blue" variant="light">
+                            SLOT {member.slot_index + 1}
+                          </Badge>
+
+                          <Avatar
+                            radius="xl"
+                            size={46}
+                            src={meta?.image || undefined}
+                            alt={`${meta?.name || `Player ${rawId}`} avatar`}
+                            styles={{
+                              root: {
+                                background:
+                                  "linear-gradient(135deg, rgba(255,138,61,0.9), rgba(37,99,235,0.9))",
+                              },
+                            }}
+                          >
+                            🎯
+                          </Avatar>
+
+                          <div style={{ flex: 1 }}>
+                            <Text c="white" fw={800}>
+                              {meta?.name || `Player ${formatPlayerId(member.player_id)}`}
+                            </Text>
+                            <Text size="sm" c="rgba(255,255,255,0.58)">
+                              {meta
+                                ? [meta.team, meta.country].filter(Boolean).join(" • ")
+                                : `ID ${formatPlayerId(member.player_id)}`}
+                            </Text>
+                          </div>
+
+                          <Text c="rgba(255,255,255,0.7)" fw={700}>
+                            {member.role_label}
+                          </Text>
+                        </Group>
+                      );
+                    })}
                 </Stack>
               </Paper>
             )}
