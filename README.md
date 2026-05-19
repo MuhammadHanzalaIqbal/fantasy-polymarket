@@ -1,3 +1,7 @@
+> **Collaboration mirror.** This is a public mirror of [`georgiipr/fantasy-polymarket`](https://github.com/georgiipr/fantasy-polymarket) - a fantasy-sports blockchain MVP built jointly by **[Georgii Promyslov (@georgiipr)](https://github.com/georgiipr)** and **[Muhammad Hanzala Iqbal (@MuhammadHanzalaIqbal)](https://github.com/MuhammadHanzalaIqbal)**. Full git history is preserved on this mirror; per-commit author attribution is unchanged. Published publicly with georgiipr's explicit consent.
+
+---
+
 # Fantasy Polymarket
 
 Fantasy Polymarket is a blockchain fantasy sports MVP with:
